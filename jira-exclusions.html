@@ -160,8 +160,8 @@ td{padding:0.6rem 0.9rem;vertical-align:middle;max-width:280px}
 .debug-bar{
   font-size:11px;font-family:'JetBrains Mono',monospace;
   background:var(--surface-off);border:1px solid var(--border);
-  border-radius:var(--r);padding:0.4rem 0.75rem;margin:0.5rem 0;
-  color:var(--muted);display:none;
+  border-radius:var(--r);padding:0.5rem 0.75rem;margin:0.5rem 0;
+  color:var(--muted);display:none;white-space:pre-wrap;line-height:1.9;
 }
 #toast{
   position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;
@@ -328,15 +328,22 @@ function isDark(){return document.documentElement.getAttribute('data-theme')==='
 
 let allTickets=[],filtered=[],sortKey='jira',sortDir=1,charts={};
 
+/* ── FIX 1: col() trims ALL header keys before comparing ──────────────────
+   Catches "Week " (trailing space in KM-1) and any similar whitespace
+   issues in other sheets without needing per-sheet special cases.         */
 function col(row,...names){
+  const entries=Object.entries(row);
   for(const n of names){
-    if(row[n]!==undefined&&row[n]!=='')return row[n];
-  }
-  const keys=Object.keys(row);
-  for(const n of names){
-    const lo=n.toLowerCase();
-    const k=keys.find(k=>k.toLowerCase()===lo);
-    if(k!==undefined&&row[k]!==undefined&&row[k]!=='')return row[k];
+    const nTrim=n.trim();
+    const nLo=nTrim.toLowerCase();
+    // Exact trimmed match
+    for(const [k,v] of entries){
+      if(k.trim()===nTrim&&v!==undefined&&v!==null&&String(v).trim()!=='')return v;
+    }
+    // Case-insensitive trimmed match
+    for(const [k,v] of entries){
+      if(k.trim().toLowerCase()===nLo&&v!==undefined&&v!==null&&String(v).trim()!=='')return v;
+    }
   }
   return '';
 }
@@ -363,27 +370,54 @@ function processFile(file){
   const reader=new FileReader();
   reader.onload=function(ev){
     try{
-      const wb=XLSX.read(ev.target.result,{type:'array',cellText:false,cellDates:true});
+      const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
       const sheetNames=['KSL-4','KM-1','KSL-5a','KM-2'];
       allTickets=[];
       const debugLines=[];
+
       sheetNames.forEach(sn=>{
         const ws=wb.Sheets[sn];
         if(!ws){debugLines.push(sn+': sheet not found');return;}
-        const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
-        debugLines.push(sn+': '+rows.length+' rows total');
+
+        /* ── FIX 2: raw:false coerces all values to formatted strings.
+               defval:'' fills sparse/empty cells so no cell is undefined.
+               This prevents type-mismatch silent failures on Excluded/Week. */
+        const rawRows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:false});
+
+        /* ── FIX 3: normalise every header key by trimming whitespace.
+               "Week " in KM-1 becomes "Week" so col() lookups never miss. */
+        const rows=rawRows.map(row=>{
+          const norm={};
+          for(const k of Object.keys(row)) norm[k.trim()]=row[k];
+          return norm;
+        });
+
+        debugLines.push(sn+': '+rows.length+' rows');
         if(rows.length>0){
           const keys=Object.keys(rows[0]);
-          const jiraKey=keys.find(k=>/jira/i.test(k));
-          debugLines.push('  Jira col: "'+(jiraKey||'NONE')+'"');
+          const jiraKey=keys.find(k=>/^jira$/i.test(k));
+          const weekKey=keys.find(k=>/^week$/i.test(k));
+          const exclKey=keys.find(k=>/^excluded$/i.test(k));
+          debugLines.push('  Jira:"'+(jiraKey||'NONE')+'" Week:"'+(weekKey||'NONE')+'" Excl:"'+(exclKey||'NONE')+'"');
+          const sample=rows.find(r=>isValidJira(col(r,'Jira')));
+          if(sample) debugLines.push('  Sample \u2192 Jira:'+col(sample,'Jira')+' Week:'+col(sample,'Week')+' Excl:'+col(sample,'Excluded'));
         }
+
         let found=0;
         rows.forEach(row=>{
           const rawJira=col(row,'Jira','JIRA','jira','Jira ID','JiraID','jira_id');
           if(!isValidJira(rawJira))return;
           const jiraVal=String(rawJira).trim();
+
+          /* ── FIX 4: parseInt instead of Number() ─────────────────────────
+             Number("1 ") === NaN but parseInt("1 ", 10) === 1.
+             raw:false returns "1"/"0" as strings so we must parse them.   */
           const exclRaw=col(row,'Excluded','excluded','EXCLUDED');
-          const exclNum=exclRaw===''?0:(Number(exclRaw)||0);
+          const exclNum=exclRaw===''?0:(parseInt(exclRaw,10)||0);
+
+          const weekRaw=col(row,'Week','week','WEEK');
+          const weekNum=weekRaw===''?0:(parseInt(weekRaw,10)||0);
+
           allTickets.push({
             jira:jiraVal,
             incident:String(col(row,'Incident Ticket','incident_ticket','Incident','incident')||'').trim(),
@@ -391,7 +425,7 @@ function processFile(file){
             priority:String(col(row,'Priority','priority','PRIORITY')||'').trim(),
             queue:String(col(row,'Queue','queue','QUEUE')||'').trim(),
             excluded:exclNum,
-            week:Number(col(row,'Week','week','WEEK'))||0,
+            week:weekNum,
             reason:String(col(row,'Reason','reason','REASON')||'').trim(),
             comment:String(col(row,'Comment','comment','COMMENT')||'').trim().substring(0,150),
             status:String(col(row,'Status','status','STATUS')||'').trim(),
@@ -399,17 +433,23 @@ function processFile(file){
           });
           found++;
         });
-        debugLines.push('  \u2192 '+found+' Jira exclusions found');
+        debugLines.push('  \u2192 '+found+' Jira records found');
       });
+
+      // Deduplicate by Jira ID
       const seen=new Set();
       allTickets=allTickets.filter(t=>{
         if(seen.has(t.jira))return false;
         seen.add(t.jira);return true;
       });
+
       const db=document.getElementById('debugBar');
       db.style.display='block';
-      db.textContent=debugLines.join(' | ');
-      document.getElementById('fileLabel').textContent='Loaded: '+file.name+' \u2014 '+allTickets.length+' unique Jira exclusions found';
+      db.textContent=debugLines.join('\n');
+
+      document.getElementById('fileLabel').textContent=
+        'Loaded: '+file.name+' \u2014 '+allTickets.length+' unique Jira exclusions found';
+
       if(allTickets.length===0){
         showToast('No Jira IDs found \u2014 check debug bar below upload zone');
         document.getElementById('content').style.display='none';
@@ -628,10 +668,10 @@ function renderTable(){
       <td><span class="badge ${sheetBadgeClass(t.sheet)}">${t.sheet}</span></td>
       <td style="font-size:12px;font-weight:500">${t.topic}</td>
       <td><span class="badge ${t.priority.includes('Moderate')?'badge-pri-mod':'badge-pri-low'}">${t.priority.replace('4 - ','').replace('3 - ','')}</span></td>
-      <td><span class="badge badge-week">W${t.week}</span></td>
+      <td><span class="badge badge-week">W${t.week||'?'}</span></td>
       <td><span class="badge ${t.excluded?'badge-excl-yes':'badge-excl-no'}">${t.excluded?'Excl':'Valid'}</span></td>
       <td style="font-size:12px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.reason}</td>
-      <td class="td-comment" title="${(t.comment||'').replace(/"/g,'&quot;')}">${t.comment||'<span style="color:var(--faint)">—</span>'}</td>
+      <td class="td-comment" title="${(t.comment||'').replace(/"/g,'&quot;')}">${t.comment||'<span style="color:var(--faint)">\u2014</span>'}</td>
     </tr>
   `).join('');
 }
