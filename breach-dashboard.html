@@ -78,6 +78,14 @@ a,button,[role="button"]{transition:color var(--transition),background var(--tra
 .tab{padding:var(--space-2) var(--space-4);font-size:var(--text-sm);font-weight:500;color:var(--color-text-muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color var(--transition),border-color var(--transition)}
 .tab:hover{color:var(--color-text)}
 .tab.active{color:var(--color-primary);border-bottom-color:var(--color-primary)}
+.overview-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-3);margin-bottom:var(--space-6)}
+.overview-toolbar h2{font-size:var(--text-lg);font-weight:700;letter-spacing:-.02em}
+.filter-group{display:flex;align-items:center;gap:var(--space-2)}
+.filter-label{font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted)}
+.filter-select{appearance:none;-webkit-appearance:none;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text);font-family:var(--font-body);font-size:var(--text-sm);padding:var(--space-2) var(--space-8) var(--space-2) var(--space-3);cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23797876' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right var(--space-2) center;transition:border-color var(--transition),box-shadow var(--transition)}
+.filter-select:hover{border-color:var(--color-primary)}
+.filter-select:focus{outline:none;border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-highlight)}
+.week-badge{display:inline-flex;align-items:center;gap:var(--space-1);padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:var(--text-xs);font-weight:600;background:var(--color-primary-highlight);color:var(--color-primary)}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr));gap:var(--space-4);margin-bottom:var(--space-8)}
 .kpi-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-5);box-shadow:var(--shadow-sm);transition:box-shadow var(--transition)}
 .kpi-card:hover{box-shadow:var(--shadow-md)}
@@ -87,6 +95,10 @@ a,button,[role="button"]{transition:color var(--transition),background var(--tra
 .kpi-card.accent .kpi-value{color:var(--color-primary)}
 .kpi-card.warn .kpi-value{color:var(--color-warning)}
 .kpi-card.ok .kpi-value{color:var(--color-success)}
+.kpi-delta{font-size:var(--text-xs);font-weight:600;margin-top:var(--space-1)}
+.kpi-delta.up{color:var(--color-warning)}
+.kpi-delta.down{color:var(--color-success)}
+.kpi-delta.flat{color:var(--color-text-faint)}
 .charts-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--space-4);margin-bottom:var(--space-8)}
 .chart-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-6);box-shadow:var(--shadow-sm);overflow:hidden}
 .chart-card.col-4{grid-column:span 4}
@@ -110,9 +122,8 @@ tr:hover td{background:var(--color-surface-offset)}
 .badge-ok{background:var(--color-success-highlight);color:var(--color-success)}
 .badge-warn{background:var(--color-warning-highlight);color:var(--color-warning)}
 .badge-neutral{background:var(--color-surface-dynamic);color:var(--color-text-muted)}
-.section-title{font-size:var(--text-lg);font-weight:700;letter-spacing:-.02em;margin-bottom:var(--space-4)}
 @media(max-width:1024px){.chart-card.col-4,.chart-card.col-6{grid-column:span 6}.chart-card.col-8{grid-column:span 12}}
-@media(max-width:768px){.main{padding:var(--space-4)}.charts-grid{grid-template-columns:1fr}.chart-card{grid-column:span 1 !important}.header{padding:var(--space-3) var(--space-4)}}
+@media(max-width:768px){.main{padding:var(--space-4)}.charts-grid{grid-template-columns:1fr}.chart-card{grid-column:span 1 !important}.header{padding:var(--space-3) var(--space-4)}.overview-toolbar{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
 <body>
@@ -166,7 +177,16 @@ tr:hover td{background:var(--color-surface-offset)}
       <button class="tab" onclick="switchTab('raw',this)">Raw Data</button>
     </nav>
     <div id="tab-overview">
-      <h2 class="section-title">Executive Overview</h2>
+      <div class="overview-toolbar">
+        <h2>Executive Overview</h2>
+        <div class="filter-group">
+          <span class="filter-label">Week</span>
+          <select class="filter-select" id="week-filter" onchange="onWeekChange()">
+            <option value="all">All Weeks</option>
+          </select>
+          <span class="week-badge" id="week-badge" style="display:none"></span>
+        </div>
+      </div>
       <div class="kpi-grid" id="overview-kpis"></div>
       <div class="charts-grid" id="overview-charts"></div>
     </div>
@@ -217,9 +237,42 @@ function handleFile(file){
     document.getElementById('export-btn').style.display='flex';
     document.getElementById('upload-zone').style.display='none';
     document.getElementById('dashboard').style.display='block';
+    populateWeekDropdown();
     build();
   };
   r.readAsBinaryString(file);
+}
+
+function populateWeekDropdown(){
+  const sel=document.getElementById('week-filter');
+  // clear existing options except "All Weeks"
+  while(sel.options.length>1)sel.remove(1);
+  const weeks=new Set();
+  for(const rows of Object.values(data))rows.forEach(r=>{if(r['Week']!=null)weeks.add(String(r['Week']));});
+  [...weeks].sort((a,b)=>+a-+b).forEach(w=>{
+    const o=document.createElement('option');o.value=w;o.textContent='Week '+w;sel.appendChild(o);
+  });
+}
+
+function getSelectedWeek(){return document.getElementById('week-filter').value;}
+
+function filterByWeek(rows){
+  const w=getSelectedWeek();
+  return w==='all'?rows:rows.filter(r=>String(r['Week'])===w);
+}
+
+function onWeekChange(){
+  const w=getSelectedWeek();
+  const badge=document.getElementById('week-badge');
+  if(w==='all'){badge.style.display='none';}
+  else{badge.textContent='Wk '+w;badge.style.display='inline-flex';}
+  // destroy overview charts only and rebuild overview
+  const ovChartIds=['ov-sheet','ov-week','ov-excl','ov-prio'];
+  charts=charts.filter(c=>{
+    const keep=!ovChartIds.some(id=>c.canvas&&c.canvas.id===id);
+    if(!keep)c.destroy();return keep;
+  });
+  buildOverview();
 }
 
 function cntBy(arr,k){return arr.reduce((a,r)=>{const v=r[k]||'Unknown';a[v]=(a[v]||0)+1;return a},{})}
@@ -254,26 +307,66 @@ function renderAllCharts(){
 
 function build(){killCharts();buildOverview();['KSL-4','KM-1','KSL-5a','KM-2'].forEach((s,i)=>buildSheet(s,['ksl4','km1','ksl5a','km2'][i]));buildRaw();}
 
+function deltaArrow(curr,prev){
+  if(prev==null||prev===0)return{txt:'',cls:'flat'};
+  const pct=((curr-prev)/prev*100).toFixed(1);
+  const up=curr>prev;
+  return{txt:(up?'▲ +':'▼ ')+pct+'% vs prev week',cls:up?'up':'down'};
+}
+
 function buildOverview(){
   const sheets=Object.keys(data);
+  const selWk=getSelectedWeek();
   let total=0,excl=0;const wm={};const sb=[];
-  for(const s of sheets){const d=data[s];total+=d.length;const e=getExcl(d);excl+=e;sb.push({name:s,cnt:d.length,excl:e});d.forEach(r=>{const w=r['Week'];if(w)wm[w]=(wm[w]||0)+1;});}
+  for(const s of sheets){
+    const raw=data[s];
+    const filtered=filterByWeek(raw);
+    const e=getExcl(filtered);
+    total+=filtered.length;excl+=e;
+    sb.push({name:s,cnt:filtered.length,excl:e});
+    raw.forEach(r=>{const w=r['Week'];if(w)wm[w]=(wm[w]||0)+1;});
+  }
   const valid=total-excl;
+
+  // delta vs previous week
+  let deltaHtml='';
+  if(selWk!=='all'){
+    const weeks=[...new Set(Object.values(data).flatMap(rows=>rows.map(r=>r['Week'])).filter(Boolean))].map(Number).sort((a,b)=>a-b);
+    const idx=weeks.indexOf(+selWk);
+    if(idx>0){
+      const prevWk=String(weeks[idx-1]);
+      let prevTotal=0;
+      for(const s of sheets){const pf=data[s].filter(r=>String(r['Week'])===prevWk);prevTotal+=pf.length;}
+      const{txt,cls}=deltaArrow(total,prevTotal);
+      if(txt)deltaHtml=`<div class="kpi-delta ${cls}">${txt}</div>`;
+    }
+  }
+
+  const weekLabel=selWk==='all'?'All Weeks':'Week '+selWk;
   document.getElementById('overview-kpis').innerHTML=`
-    <div class="kpi-card accent"><div class="kpi-label">Total Breaches</div><div class="kpi-value">${total.toLocaleString()}</div><div class="kpi-sub">All sheets</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Total Breaches</div><div class="kpi-value">${total.toLocaleString()}</div><div class="kpi-sub">${weekLabel}</div>${deltaHtml}</div>
     <div class="kpi-card ok"><div class="kpi-label">Valid</div><div class="kpi-value">${valid.toLocaleString()}</div><div class="kpi-sub">Not excluded</div></div>
-    <div class="kpi-card warn"><div class="kpi-label">Excluded</div><div class="kpi-value">${excl.toLocaleString()}</div><div class="kpi-sub">${(excl/total*100).toFixed(1)}% of total</div></div>
+    <div class="kpi-card warn"><div class="kpi-label">Excluded</div><div class="kpi-value">${excl.toLocaleString()}</div><div class="kpi-sub">${total>0?(excl/total*100).toFixed(1):0}% of total</div></div>
     <div class="kpi-card"><div class="kpi-label">SLA Types</div><div class="kpi-value">${sheets.length}</div><div class="kpi-sub">${sheets.join(' / ')}</div></div>`;
+
   document.getElementById('overview-charts').innerHTML=`
-    <div class="chart-card col-6"><div class="chart-title">Breaches by Sheet <span class="chart-sub">total vs excluded</span></div><div class="chart-wrap"><canvas id="ov-sheet"></canvas></div></div>
+    <div class="chart-card col-6"><div class="chart-title">Breaches by Sheet <span class="chart-sub">total vs excluded — ${weekLabel}</span></div><div class="chart-wrap"><canvas id="ov-sheet"></canvas></div></div>
     <div class="chart-card col-6"><div class="chart-title">Weekly Trend <span class="chart-sub">all sheets</span></div><div class="chart-wrap"><canvas id="ov-week"></canvas></div></div>
-    <div class="chart-card col-4"><div class="chart-title">Exclusion Rate</div><div class="chart-wrap"><canvas id="ov-excl"></canvas></div></div>
-    <div class="chart-card col-8"><div class="chart-title">Priority Distribution <span class="chart-sub">all sheets</span></div><div class="chart-wrap"><canvas id="ov-prio"></canvas></div></div>`;
+    <div class="chart-card col-4"><div class="chart-title">Exclusion Rate <span class="chart-sub">${weekLabel}</span></div><div class="chart-wrap"><canvas id="ov-excl"></canvas></div></div>
+    <div class="chart-card col-8"><div class="chart-title">Priority Distribution <span class="chart-sub">${weekLabel}</span></div><div class="chart-wrap"><canvas id="ov-prio"></canvas></div></div>`;
+
   mkChart('ov-sheet',{type:'bar',data:{labels:sb.map(s=>s.name),datasets:[{label:'Valid',data:sb.map(s=>s.cnt-s.excl),backgroundColor:P[0]+'cc',borderRadius:4},{label:'Excluded',data:sb.map(s=>s.excl),backgroundColor:P[2]+'cc',borderRadius:4}]},options:baseOpts()});
+
+  // Weekly trend — highlight selected week
   const wks=Object.keys(wm).sort((a,b)=>+a-+b);
-  mkChart('ov-week',{type:'line',data:{labels:wks.map(w=>'Wk '+w),datasets:[{label:'Breaches',data:wks.map(w=>wm[w]),borderColor:P[0],backgroundColor:P[0]+'22',fill:true,tension:.4,pointRadius:4,borderWidth:2}]},options:baseOpts()});
+  const ptColors=wks.map(w=>selWk!=='all'&&String(w)===selWk?P[2]:P[0]);
+  const ptRadius=wks.map(w=>selWk!=='all'&&String(w)===selWk?7:3);
+  mkChart('ov-week',{type:'line',data:{labels:wks.map(w=>'Wk '+w),datasets:[{label:'Breaches',data:wks.map(w=>wm[w]),borderColor:P[0],backgroundColor:P[0]+'22',fill:true,tension:.4,pointRadius:ptRadius,pointBackgroundColor:ptColors,borderWidth:2}]},options:baseOpts()});
+
   mkChart('ov-excl',{type:'doughnut',data:{labels:['Valid','Excluded'],datasets:[{data:[valid,excl],backgroundColor:[P[0]+'cc',P[2]+'cc'],borderWidth:0,hoverOffset:4}]},options:donutOpts('bottom')});
-  const pm={};for(const s of sheets)data[s].forEach(r=>{const p=r['Priority']||'Unknown';pm[p]=(pm[p]||0)+1;});
+
+  const pm={};
+  for(const s of sheets)filterByWeek(data[s]).forEach(r=>{const p=r['Priority']||'Unknown';pm[p]=(pm[p]||0)+1;});
   const pe=Object.entries(pm).sort((a,b)=>b[1]-a[1]);
   mkChart('ov-prio',{type:'bar',data:{labels:pe.map(e=>e[0]),datasets:[{label:'Count',data:pe.map(e=>e[1]),backgroundColor:P,borderRadius:4}]},options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}}}});
 }
@@ -342,7 +435,8 @@ function exportCSV(){
   for(const[sheet,rows]of Object.entries(data)){
     if(!rows.length)continue;
     const cols=Object.keys(rows[0]);
-    const csv=[cols.join(','),...rows.map(r=>cols.map(c=>`"${String(r[c]??'').replace(/"/g,'""')}"`).join(','))].join('\n');
+    const csv=[cols.join(','),...rows.map(r=>cols.map(c=>`"${String(r[c]??'').replace(/"/g,'""')}"`)
+      .join(','))].join('\n');
     const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`${sheet}_export.csv`;a.click();
   }
 }
