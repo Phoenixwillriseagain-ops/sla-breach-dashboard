@@ -66,6 +66,8 @@ a,button,[role="button"]{transition:color var(--transition),background var(--tra
 .btn{display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-4);border-radius:var(--radius-md);font-size:var(--text-sm);font-weight:500;white-space:nowrap}
 .btn-ghost{border:1px solid var(--color-border);color:var(--color-text-muted)}
 .btn-ghost:hover{background:var(--color-surface-offset);color:var(--color-text)}
+.btn-primary{background:var(--color-purple);color:#fff;border:none}
+.btn-primary:hover{opacity:.88}
 .btn-icon{padding:var(--space-2);border-radius:var(--radius-md);color:var(--color-text-muted)}
 .btn-icon:hover{background:var(--color-surface-offset);color:var(--color-text)}
 .upload-zone{border:2px dashed var(--color-border);border-radius:var(--radius-xl);padding:var(--space-12) var(--space-8);text-align:center;cursor:pointer;transition:border-color var(--transition),background var(--transition);margin-bottom:var(--space-8)}
@@ -78,7 +80,7 @@ a,button,[role="button"]{transition:color var(--transition),background var(--tra
 .tab{padding:var(--space-2) var(--space-4);font-size:var(--text-sm);font-weight:500;color:var(--color-text-muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color var(--transition),border-color var(--transition)}
 .tab:hover{color:var(--color-text)}
 .tab.active{color:var(--color-primary);border-bottom-color:var(--color-primary)}
-/* sub-tabs inside sheet panels */
+.tab.tab-jira.active{color:var(--color-purple);border-bottom-color:var(--color-purple)}
 .sub-tabs{display:flex;gap:var(--space-1);border-bottom:1px solid var(--color-divider);margin-bottom:var(--space-6)}
 .sub-tab{padding:var(--space-1) var(--space-3);font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);border-bottom:2px solid transparent;margin-bottom:-1px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;transition:color var(--transition),border-color var(--transition)}
 .sub-tab:hover{color:var(--color-text)}
@@ -90,8 +92,10 @@ a,button,[role="button"]{transition:color var(--transition),background var(--tra
 .filter-select{appearance:none;-webkit-appearance:none;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text);font-family:var(--font-body);font-size:var(--text-sm);padding:var(--space-2) var(--space-8) var(--space-2) var(--space-3);cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23797876' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right var(--space-2) center;transition:border-color var(--transition),box-shadow var(--transition)}
 .filter-select:hover{border-color:var(--color-primary)}
 .filter-select:focus{outline:none;border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-highlight)}
+.search-input{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text);font-family:var(--font-body);font-size:var(--text-sm);padding:var(--space-2) var(--space-4);width:220px;transition:border-color var(--transition),box-shadow var(--transition)}
+.search-input:focus{outline:none;border-color:var(--color-purple);box-shadow:0 0 0 3px rgba(168,111,223,.15)}
+.search-input::placeholder{color:var(--color-text-faint)}
 .week-badge{display:inline-flex;align-items:center;gap:var(--space-1);padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:var(--text-xs);font-weight:600;background:var(--color-primary-highlight);color:var(--color-primary)}
-.jira-badge{background:var(--color-purple);color:#fff;padding:2px var(--space-2);border-radius:var(--radius-full);font-size:var(--text-xs);font-weight:700;letter-spacing:.03em}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr));gap:var(--space-4);margin-bottom:var(--space-8)}
 .kpi-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-5);box-shadow:var(--shadow-sm);transition:box-shadow var(--transition)}
 .kpi-card:hover{box-shadow:var(--shadow-md)}
@@ -108,6 +112,7 @@ a,button,[role="button"]{transition:color var(--transition),background var(--tra
 .kpi-delta.flat{color:var(--color-text-faint)}
 .charts-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--space-4);margin-bottom:var(--space-8)}
 .chart-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-6);box-shadow:var(--shadow-sm);overflow:hidden}
+.chart-card.col-3{grid-column:span 3}
 .chart-card.col-4{grid-column:span 4}
 .chart-card.col-6{grid-column:span 6}
 .chart-card.col-8{grid-column:span 8}
@@ -116,26 +121,25 @@ a,button,[role="button"]{transition:color var(--transition),background var(--tra
 .chart-sub{font-size:var(--text-xs);color:var(--color-text-muted);font-weight:400}
 .chart-wrap{position:relative;height:240px}
 .chart-wrap.tall{height:320px}
-.chart-wrap.hmap{height:260px}
-/* Heatmap CSS grid */
 .heatmap-wrap{overflow-x:auto;padding-bottom:var(--space-2)}
-.heatmap{display:grid;gap:3px;font-size:10px;width:max-content}
-.hm-cell{width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:9px;font-weight:600;color:transparent;transition:color .1s;cursor:default}
-.hm-cell:hover{color:var(--color-text)!important}
+.heatmap{width:max-content}
 .hm-label-row{display:flex;gap:3px;margin-bottom:2px}
 .hm-hour-label{width:28px;text-align:center;font-size:9px;color:var(--color-text-faint)}
 .hm-row{display:flex;align-items:center;gap:3px}
 .hm-day-label{width:28px;font-size:9px;color:var(--color-text-muted);text-align:right;padding-right:4px;flex-shrink:0}
+.hm-cell{width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:9px;font-weight:600;color:transparent;transition:color .1s;cursor:default}
+.hm-cell:hover{color:var(--color-text)!important}
 .hm-legend{display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-3);font-size:var(--text-xs);color:var(--color-text-muted)}
 .hm-legend-scale{display:flex;gap:2px}
 .hm-legend-swatch{width:16px;height:16px;border-radius:3px}
-/* Jira escalation table */
 .table-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:var(--space-8)}
 .table-header{display:flex;align-items:center;justify-content:space-between;padding:var(--space-5) var(--space-6);border-bottom:1px solid var(--color-divider);flex-wrap:wrap;gap:var(--space-3)}
 .table-scroll{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:var(--text-sm)}
 thead tr{border-bottom:1px solid var(--color-divider)}
-th{padding:var(--space-3) var(--space-4);text-align:left;font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);background:var(--color-surface-offset);white-space:nowrap}
+th{padding:var(--space-3) var(--space-4);text-align:left;font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);background:var(--color-surface-offset);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--color-text)}
+.th-sort{display:inline-flex;align-items:center;gap:4px}
 td{padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--color-divider);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--color-surface-offset)}
@@ -143,12 +147,26 @@ tr:hover td{background:var(--color-surface-offset)}
 .badge-ok{background:var(--color-success-highlight);color:var(--color-success)}
 .badge-warn{background:var(--color-warning-highlight);color:var(--color-warning)}
 .badge-neutral{background:var(--color-surface-dynamic);color:var(--color-text-muted)}
-.badge-jira{background:#2d2046;color:var(--color-purple);border:1px solid var(--color-purple)}
+.badge-jira{background:#2d2046;color:var(--color-purple);border:1px solid var(--color-purple);font-family:var(--font-mono);letter-spacing:.02em}
 [data-theme="light"] .badge-jira{background:#ede8f7;color:#5e2fa3;border-color:#5e2fa3}
+.badge-sheet{padding:2px var(--space-2);border-radius:var(--radius-full);font-size:var(--text-xs);font-weight:700}
+.badge-ksl4{background:rgba(79,152,163,.15);color:var(--color-primary)}
+.badge-km1{background:rgba(109,170,69,.15);color:var(--color-success)}
+.badge-ksl5a{background:rgba(253,171,67,.15);color:var(--color-orange)}
+.badge-km2{background:rgba(168,111,223,.15);color:var(--color-purple)}
+.escalation-bar{height:6px;border-radius:var(--radius-full);background:var(--color-surface-dynamic);overflow:hidden;margin-top:4px}
+.escalation-bar-fill{height:100%;border-radius:var(--radius-full);background:var(--color-purple);transition:width .4s ease}
+.jira-header-accent{background:linear-gradient(135deg,rgba(122,57,187,.12),rgba(79,152,163,.06));border:1px solid rgba(168,111,223,.2);border-radius:var(--radius-xl);padding:var(--space-6);margin-bottom:var(--space-8);display:flex;align-items:center;gap:var(--space-6);flex-wrap:wrap}
+.jira-header-icon{width:48px;height:48px;border-radius:var(--radius-lg);background:var(--color-purple);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pagination{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-4) var(--space-6);border-top:1px solid var(--color-divider);font-size:var(--text-xs);color:var(--color-text-muted)}
+.page-btn{padding:var(--space-1) var(--space-3);border-radius:var(--radius-md);font-size:var(--text-xs);font-weight:500;border:1px solid var(--color-border);color:var(--color-text-muted)}
+.page-btn:hover{background:var(--color-surface-offset);color:var(--color-text)}
+.page-btn.active{background:var(--color-purple);color:#fff;border-color:var(--color-purple)}
+.page-btn:disabled{opacity:.35;cursor:default}
 .empty-state{text-align:center;padding:var(--space-16) var(--space-8);color:var(--color-text-muted)}
 .empty-state p{margin-top:var(--space-2);font-size:var(--text-sm)}
-@media(max-width:1024px){.chart-card.col-4,.chart-card.col-6{grid-column:span 6}.chart-card.col-8{grid-column:span 12}}
-@media(max-width:768px){.main{padding:var(--space-4)}.charts-grid{grid-template-columns:1fr}.chart-card{grid-column:span 1!important}.header{padding:var(--space-3) var(--space-4)}.tab-toolbar{flex-direction:column;align-items:flex-start}}
+@media(max-width:1024px){.chart-card.col-3,.chart-card.col-4{grid-column:span 6}.chart-card.col-8{grid-column:span 12}}
+@media(max-width:768px){.main{padding:var(--space-4)}.charts-grid{grid-template-columns:1fr}.chart-card{grid-column:span 1!important}.header{padding:var(--space-3) var(--space-4)}.tab-toolbar{flex-direction:column;align-items:flex-start}.jira-header-accent{flex-direction:column}}
 </style>
 </head>
 <body>
@@ -190,7 +208,7 @@ tr:hover td{background:var(--color-surface-offset)}
       <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/>
     </svg>
     <h2>Drop your V2-breaches.xlsx here</h2>
-    <p style="margin-top:var(--space-2)">or click to browse &mdash; supports KSL-4, KM-1, KSL-5a, KM-2 sheets</p>
+    <p style="margin-top:var(--space-2)">or click to browse &mdash; KSL-4, KM-1, KSL-5a, KM-2</p>
   </div>
 
   <div id="dashboard" style="display:none">
@@ -200,6 +218,7 @@ tr:hover td{background:var(--color-surface-offset)}
       <button class="tab" onclick="switchTab('km1',this)">KM-1</button>
       <button class="tab" onclick="switchTab('ksl5a',this)">KSL-5a</button>
       <button class="tab" onclick="switchTab('km2',this)">KM-2</button>
+      <button class="tab tab-jira" onclick="switchTab('jira',this)">&#x1F4CB; Jira Tracker</button>
       <button class="tab" onclick="switchTab('raw',this)">Raw Data</button>
     </nav>
 
@@ -228,10 +247,9 @@ tr:hover td{background:var(--color-surface-offset)}
         </div>
       </div>
       <div class="kpi-grid" id="ksl4-kpis"></div>
-      <nav class="sub-tabs"><button class="sub-tab active" onclick="switchSub('ksl4','charts',this)">Charts</button><button class="sub-tab" onclick="switchSub('ksl4','heatmap',this)">&#x1F525; Breach Heatmap</button><button class="sub-tab" onclick="switchSub('ksl4','jira',this)">&#x1F4CB; Jira Escalations</button></nav>
+      <nav class="sub-tabs"><button class="sub-tab active" onclick="switchSub('ksl4','charts',this)">Charts</button><button class="sub-tab" onclick="switchSub('ksl4','heatmap',this)">&#x1F525; Heatmap</button></nav>
       <div id="ksl4-sub-charts"><div class="charts-grid" id="ksl4-charts"></div></div>
       <div id="ksl4-sub-heatmap" style="display:none"><div id="ksl4-heatmap-section"></div></div>
-      <div id="ksl4-sub-jira" style="display:none"><div id="ksl4-jira-section"></div></div>
     </div>
 
     <!-- KM-1 -->
@@ -245,11 +263,9 @@ tr:hover td{background:var(--color-surface-offset)}
         </div>
       </div>
       <div class="kpi-grid" id="km1-kpis"></div>
-      <nav class="sub-tabs"><button class="sub-tab active" onclick="switchSub('km1','charts',this)">Charts</button><button class="sub-tab" onclick="switchSub('km1','heatmap',this)">&#x1F525; Breach Heatmap</button><button class="sub-tab" onclick="switchSub('km1','jira',this)">&#x1F4CB; Jira Escalations</button></nav>
+      <nav class="sub-tabs"><button class="sub-tab active" onclick="switchSub('km1','charts',this)">Charts</button><button class="sub-tab" onclick="switchSub('km1','heatmap',this)">&#x1F525; Heatmap</button></nav>
       <div id="km1-sub-charts"><div class="charts-grid" id="km1-charts"></div></div>
       <div id="km1-sub-heatmap" style="display:none"><div id="km1-heatmap-section"></div></div>
-      <div id="km1-sub-jira" style="display:none"><div id="km1-jira-section"></div>
-      </div>
     </div>
 
     <!-- KSL-5a -->
@@ -263,10 +279,9 @@ tr:hover td{background:var(--color-surface-offset)}
         </div>
       </div>
       <div class="kpi-grid" id="ksl5a-kpis"></div>
-      <nav class="sub-tabs"><button class="sub-tab active" onclick="switchSub('ksl5a','charts',this)">Charts</button><button class="sub-tab" onclick="switchSub('ksl5a','heatmap',this)">&#x1F525; Breach Heatmap</button><button class="sub-tab" onclick="switchSub('ksl5a','jira',this)">&#x1F4CB; Jira Escalations</button></nav>
+      <nav class="sub-tabs"><button class="sub-tab active" onclick="switchSub('ksl5a','charts',this)">Charts</button><button class="sub-tab" onclick="switchSub('ksl5a','heatmap',this)">&#x1F525; Heatmap</button></nav>
       <div id="ksl5a-sub-charts"><div class="charts-grid" id="ksl5a-charts"></div></div>
       <div id="ksl5a-sub-heatmap" style="display:none"><div id="ksl5a-heatmap-section"></div></div>
-      <div id="ksl5a-sub-jira" style="display:none"><div id="ksl5a-jira-section"></div></div>
     </div>
 
     <!-- KM-2 -->
@@ -280,10 +295,33 @@ tr:hover td{background:var(--color-surface-offset)}
         </div>
       </div>
       <div class="kpi-grid" id="km2-kpis"></div>
-      <nav class="sub-tabs"><button class="sub-tab active" onclick="switchSub('km2','charts',this)">Charts</button><button class="sub-tab" onclick="switchSub('km2','heatmap',this)">&#x1F525; Breach Heatmap</button><button class="sub-tab" onclick="switchSub('km2','jira',this)">&#x1F4CB; Jira Escalations</button></nav>
+      <nav class="sub-tabs"><button class="sub-tab active" onclick="switchSub('km2','charts',this)">Charts</button><button class="sub-tab" onclick="switchSub('km2','heatmap',this)">&#x1F525; Heatmap</button></nav>
       <div id="km2-sub-charts"><div class="charts-grid" id="km2-charts"></div></div>
       <div id="km2-sub-heatmap" style="display:none"><div id="km2-heatmap-section"></div></div>
-      <div id="km2-sub-jira" style="display:none"><div id="km2-jira-section"></div></div>
+    </div>
+
+    <!-- JIRA TRACKER -->
+    <div id="tab-jira" style="display:none">
+      <div class="jira-header-accent">
+        <div class="jira-header-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:var(--text-base);color:var(--color-purple)">Jira Escalation Tracker</div>
+          <div style="font-size:var(--text-xs);color:var(--color-text-muted);margin-top:2px">All breaches that generated a Jira ticket &mdash; cross-sheet view with filters, trend analysis, and export</div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Week</span>
+          <select class="filter-select" id="week-filter-jira" onchange="buildJiraTab()" style="border-color:rgba(168,111,223,.4)"><option value="all">All Weeks</option></select>
+          <span class="filter-label" style="margin-left:var(--space-2)">Sheet</span>
+          <select class="filter-select" id="sheet-filter-jira" onchange="buildJiraTab()" style="border-color:rgba(168,111,223,.4)"><option value="all">All Sheets</option></select>
+          <span class="filter-label" style="margin-left:var(--space-2)">Language</span>
+          <select class="filter-select" id="lang-filter-jira" onchange="buildJiraTab()" style="border-color:rgba(168,111,223,.4)"><option value="all">All</option></select>
+        </div>
+      </div>
+      <div class="kpi-grid" id="jira-kpis"></div>
+      <div class="charts-grid" id="jira-charts"></div>
+      <div id="jira-table-section"></div>
     </div>
 
     <div id="tab-raw" style="display:none"><div id="raw-tables"></div></div>
@@ -291,7 +329,7 @@ tr:hover td{background:var(--color-surface-offset)}
 </main>
 </div>
 <script>
-// ── Theme ────────────────────────────────────────────────────────
+// ── Theme ─────────────────────────────────────────────────────────
 (function(){
   const t=document.querySelector('[data-theme-toggle]'),r=document.documentElement;
   let d=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
@@ -305,12 +343,13 @@ const P=['#4f98a3','#6daa45','#fdab43','#a86fdf','#5591c7','#bb653b','#d163a7','
 const SHEET_MAP={'ksl4':'KSL-4','km1':'KM-1','ksl5a':'KSL-5a','km2':'KM-2'};
 const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const HOURS=Array.from({length:24},(_,i)=>i);
+const SHEET_BADGE={'KSL-4':'badge-ksl4','KM-1':'badge-km1','KSL-5a':'badge-ksl5a','KM-2':'badge-km2'};
 
 function gc(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function cc(){return{muted:gc('--color-text-muted'),grid:gc('--color-divider')};}
 function isDark(){return document.documentElement.getAttribute('data-theme')==='dark';}
 
-let data=null,charts=[];
+let data=null,charts=[],jiraPage=1,jiraSort={col:null,dir:1};
 
 // ── File handling ─────────────────────────────────────────────────
 function handleDrop(e){e.preventDefault();document.getElementById('upload-zone').classList.remove('drag-over');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);}
@@ -320,9 +359,7 @@ function handleFile(file){
   r.onload=e=>{
     const wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});
     data={};let found=0;
-    for(const s of['KSL-4','KM-1','KSL-5a','KM-2']){
-      if(wb.SheetNames.includes(s)){data[s]=XLSX.utils.sheet_to_json(wb.Sheets[s]);found++;}
-    }
+    for(const s of['KSL-4','KM-1','KSL-5a','KM-2']){if(wb.SheetNames.includes(s)){data[s]=XLSX.utils.sheet_to_json(wb.Sheets[s]);found++;}}
     if(!found){alert('No recognized sheets found.');return;}
     document.getElementById('file-badge').textContent=file.name;
     document.getElementById('file-badge').style.display='inline';
@@ -339,16 +376,28 @@ function handleFile(file){
 function weeksForSheet(s){return[...new Set((data[s]||[]).map(r=>r['Week']).filter(w=>w!=null))].map(String).sort((a,b)=>+a-+b);}
 function weeksAllSheets(){const s=new Set();for(const rows of Object.values(data))rows.forEach(r=>{if(r['Week']!=null)s.add(String(r['Week']));});return[...s].sort((a,b)=>+a-+b);}
 function populateDropdown(id,weeks){const sel=document.getElementById(id);while(sel.options.length>1)sel.remove(1);weeks.forEach(w=>{const o=document.createElement('option');o.value=w;o.textContent='Week '+w;sel.appendChild(o);});}
-function populateAllDropdowns(){populateDropdown('week-filter-overview',weeksAllSheets());for(const[pfx,sheet]of Object.entries(SHEET_MAP))populateDropdown('week-filter-'+pfx,weeksForSheet(sheet));}
+function populateAllDropdowns(){
+  populateDropdown('week-filter-overview',weeksAllSheets());
+  for(const[pfx,sheet]of Object.entries(SHEET_MAP))populateDropdown('week-filter-'+pfx,weeksForSheet(sheet));
+  // Jira tab: week
+  populateDropdown('week-filter-jira',weeksAllSheets());
+  // Jira tab: sheet
+  const ss=document.getElementById('sheet-filter-jira');while(ss.options.length>1)ss.remove(1);
+  Object.keys(data).forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;ss.appendChild(o);});
+  // Jira tab: language
+  const ls=document.getElementById('lang-filter-jira');while(ls.options.length>1)ls.remove(1);
+  const langs=new Set();for(const rows of Object.values(data))rows.forEach(r=>{if(r['ISO_Language'])langs.add(r['ISO_Language']);});
+  [...langs].sort().forEach(l=>{const o=document.createElement('option');o.value=l;o.textContent=l;ls.appendChild(o);});
+}
 function getWeek(pfx){return document.getElementById('week-filter-'+pfx).value;}
 function filterRows(rows,pfx){const w=getWeek(pfx);return w==='all'?rows:rows.filter(r=>String(r['Week'])===w);}
+function findJiraCol(row){return Object.keys(row||{}).find(k=>/jira/i.test(k));}
 
-// ── Week change ───────────────────────────────────────────────────
+// ── Week change handler ───────────────────────────────────────────
 function onSheetWeekChange(pfx){
   const w=getWeek(pfx);
   const badge=document.getElementById('week-badge-'+pfx);
-  badge.style.display=w==='all'?'none':'inline-flex';
-  if(w!=='all')badge.textContent='Wk '+w;
+  if(badge){badge.style.display=w==='all'?'none':'inline-flex';if(w!=='all')badge.textContent='Wk '+w;}
   const prefix=pfx==='overview'?'ov':pfx;
   charts=charts.filter(c=>{const id=c.canvas?.id||'';const ok=id.startsWith(prefix+'-')||(pfx==='overview'&&id.startsWith('ov-'));if(ok)c.destroy();return!ok;});
   if(pfx==='overview')buildOverview();
@@ -357,14 +406,10 @@ function onSheetWeekChange(pfx){
 
 // ── Sub-tab switch ────────────────────────────────────────────────
 function switchSub(pfx,sub,btn){
-  ['charts','heatmap','jira'].forEach(s=>{
-    const el=document.getElementById(pfx+'-sub-'+s);if(el)el.style.display=s===sub?'':'none';
-  });
+  ['charts','heatmap'].forEach(s=>{const el=document.getElementById(pfx+'-sub-'+s);if(el)el.style.display=s===sub?'':'none';});
   document.querySelectorAll('#tab-'+pfx+' .sub-tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  // lazy-build sections
   if(sub==='heatmap'){const el=document.getElementById(pfx+'-heatmap-section');if(!el.dataset.built){buildHeatmap(SHEET_MAP[pfx],pfx);el.dataset.built='1';}}
-  if(sub==='jira'){const el=document.getElementById(pfx+'-jira-section');if(!el.dataset.built){buildJira(SHEET_MAP[pfx],pfx);el.dataset.built='1';}}
 }
 
 // ── Chart helpers ─────────────────────────────────────────────────
@@ -386,133 +431,36 @@ function deltaArrow(c,p){if(!p)return{txt:'',cls:'flat'};const pct=((c-p)/p*100)
 function prevWeekDelta(rows,allRows,pfx){const w=getWeek(pfx);if(w==='all')return'';const weeks=[...new Set(allRows.map(r=>r['Week']).filter(Boolean))].map(Number).sort((a,b)=>a-b);const idx=weeks.indexOf(+w);if(idx<=0)return'';const prev=String(weeks[idx-1]);const pc=allRows.filter(r=>String(r['Week'])===prev).length;const{txt,cls}=deltaArrow(rows.length,pc);return txt?`<div class="kpi-delta ${cls}">${txt}</div>`:'';
 }
 
-// ── Heatmap builder ───────────────────────────────────────────────
-function parseBreachDate(val){
-  if(!val)return null;
-  if(val instanceof Date)return val;
-  if(typeof val==='number'){// Excel serial
-    const d=new Date(Math.round((val-25569)*86400*1000));return d;}
-  const d=new Date(val);return isNaN(d)?null:d;
-}
+// ── Heatmap ───────────────────────────────────────────────────────
+function parseBreachDate(val){if(!val)return null;if(val instanceof Date)return val;if(typeof val==='number'){return new Date(Math.round((val-25569)*86400*1000));}const d=new Date(val);return isNaN(d)?null:d;}
 function buildHeatmap(sheet,pfx){
   const raw=data?.[sheet];if(!raw||!raw.length)return;
   const rows=filterRows(raw,pfx);
   const wl=getWeek(pfx)==='all'?'All Weeks':'Week '+getWeek(pfx);
-  // Build 7x24 matrix (rows=day 0=Mon, cols=hour)
   const mat=Array.from({length:7},()=>new Array(24).fill(0));
   let parsed=0;
   const dtField=Object.keys(rows[0]).find(k=>/breach/i.test(k)&&/date|time|dt/i.test(k))||Object.keys(rows[0]).find(k=>/date/i.test(k)||/time/i.test(k));
-  rows.forEach(r=>{
-    const d=parseBreachDate(r[dtField]||r['DATE_TIME_Breach']||r['Breach_Date']||r['Date']);
-    if(!d)return;
-    let dow=d.getDay();// 0=Sun
-    dow=dow===0?6:dow-1;// shift to Mon=0
-    const hr=d.getHours();
-    mat[dow][hr]++;
-    parsed++;
-  });
+  rows.forEach(r=>{const d=parseBreachDate(r[dtField]||r['DATE_TIME_Breach']||r['Breach_Date']||r['Date']);if(!d)return;let dow=d.getDay();dow=dow===0?6:dow-1;mat[dow][d.getHours()]++;parsed++;});
   const maxVal=Math.max(...mat.flat(),1);
-  // color scale: teal gradient
-  function hmColor(v){
-    if(v===0)return isDark()?'#232221':'#eeecea';
-    const t=v/maxVal;
-    if(isDark()){
-      const r=Math.round(20+t*60),g=Math.round(60+t*100),b=Math.round(80+t*60);
-      return `rgb(${r},${g+20},${b+30})`;
-    }else{
-      const r=Math.round(255-t*180),g=Math.round(255-t*100),b=Math.round(255-t*80);
-      return `rgb(${r},${g},${b})`;
-    }
+  function hmColor(v){if(v===0)return isDark()?'#232221':'#eeecea';const t=v/maxVal;if(isDark()){return`rgb(${Math.round(20+t*60)},${Math.round(80+t*100)},${Math.round(110+t*60)})`;}else{return`rgb(${Math.round(255-t*180)},${Math.round(255-t*100)},${Math.round(255-t*80)})`;}
   }
-  // build HTML
   const hourLabels=HOURS.map(h=>`<div class="hm-hour-label">${h.toString().padStart(2,'0')}</div>`).join('');
-  const rows_html=DAYS.map((day,di)=>{
-    const cells=HOURS.map(h=>{
-      const v=mat[di][h];
-      return `<div class="hm-cell" style="background:${hmColor(v)}" title="${day} ${h}:00 — ${v} breaches">${v||''}</div>`;
-    }).join('');
-    return `<div class="hm-row"><div class="hm-day-label">${day}</div>${cells}</div>`;
-  }).join('');
-  const legendSwatches=[0,.25,.5,.75,1].map(t=>{
-    const v=Math.round(t*maxVal);
-    return `<div class="hm-legend-swatch" style="background:${hmColor(v)}" title="${v}"></div>`;
-  }).join('');
-  const noData=parsed===0?`<p style="color:var(--color-text-muted);font-size:var(--text-sm);margin-bottom:var(--space-4)">⚠️ No parseable date field found. Heatmap shows no data. Column used: <code>${dtField||'none'}</code></p>`  :'';
-  document.getElementById(pfx+'-heatmap-section').innerHTML=`
-    <div class="chart-card col-12" style="grid-column:span 12">
-      <div class="chart-title">Breach Time Heatmap <span class="chart-sub">Day of week \xd7 Hour of day &mdash; ${wl} &mdash; ${parsed} records with date</span></div>
-      ${noData}
-      <div class="heatmap-wrap">
-        <div class="hm-label-row"><div style="width:28px"></div>${hourLabels}</div>
-        ${rows_html}
-      </div>
-      <div class="hm-legend"><span>Low</span><div class="hm-legend-scale">${legendSwatches}</div><span>High (${maxVal})</span></div>
-    </div>`;
+  const rowsHtml=DAYS.map((day,di)=>`<div class="hm-row"><div class="hm-day-label">${day}</div>${HOURS.map(h=>{const v=mat[di][h];return`<div class="hm-cell" style="background:${hmColor(v)}" title="${day} ${h}:00 &mdash; ${v} breaches">${v||''}</div>`;}).join('')}</div>`).join('');
+  const legendSwatches=[0,.25,.5,.75,1].map(t=>`<div class="hm-legend-swatch" style="background:${hmColor(Math.round(t*maxVal))}" title="${Math.round(t*maxVal)}"></div>`).join('');
+  document.getElementById(pfx+'-heatmap-section').innerHTML=`<div class="chart-card col-12" style="grid-column:span 12"><div class="chart-title">Breach Time Heatmap <span class="chart-sub">Day &times; Hour &mdash; ${wl} &mdash; ${parsed} dated records</span></div><div class="heatmap-wrap"><div class="hm-label-row"><div style="width:28px"></div>${hourLabels}</div>${rowsHtml}</div><div class="hm-legend"><span>Low</span><div class="hm-legend-scale">${legendSwatches}</div><span>High (${maxVal})</span></div></div>`;
 }
 
-// ── Jira escalation builder ───────────────────────────────────────
-function findJiraCol(row){
-  return Object.keys(row).find(k=>/jira/i.test(k));
-}
-function buildJira(sheet,pfx){
-  const raw=data?.[sheet];if(!raw||!raw.length)return;
-  const rows=filterRows(raw,pfx);
-  const wl=getWeek(pfx)==='all'?'All Weeks':'Week '+getWeek(pfx);
-  const jiraCol=findJiraCol(rows[0]||{});
-  if(!jiraCol){document.getElementById(pfx+'-jira-section').innerHTML=`<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-faint)" stroke-width="1.5" style="margin:0 auto var(--space-3)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p>No Jira column detected in this sheet.</p></div>`;return;}
-  const escalated=rows.filter(r=>r[jiraCol]!=null&&String(r[jiraCol]).trim()!=='');
-  const rate=rows.length>0?(escalated.length/rows.length*100).toFixed(1):0;
-  // KPIs
-  const topTopic=topN(cntBy(escalated,'TOPIC'),1)[0]||['--',0];
-  const topLang=topN(cntBy(escalated,'ISO_Language'),1)[0]||['--',0];
-  // table columns: Jira, Topic, Language, Priority, Reason, Week
-  const tcols=[jiraCol,'TOPIC','ISO_Language','Priority','Reason','Week'].filter(c=>c in (escalated[0]||{}));
-  const rowsHtml=escalated.slice(0,200).map(r=>`<tr>${tcols.map(c=>{
-    const v=r[c]??'--';
-    if(c===jiraCol)return`<td><span class="badge badge-jira">${v}</span></td>`;
-    if(c==='Priority')return`<td><span class="badge ${String(v).includes('3')?'badge-warn':'badge-neutral'}">${v}</span></td>`;
-    return`<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${String(v)}">${String(v).substring(0,60)}</td>`;
-  }).join('')}</tr>`).join('');
-  const el=document.getElementById(pfx+'-jira-section');
-  el.innerHTML=`
-    <div class="kpi-grid" style="margin-bottom:var(--space-6)">
-      <div class="kpi-card jira"><div class="kpi-label">Escalated to Jira</div><div class="kpi-value">${escalated.length}</div><div class="kpi-sub">${rate}% of ${rows.length} breaches &mdash; ${wl}</div></div>
-      <div class="kpi-card"><div class="kpi-label">Top Escalated Topic</div><div class="kpi-value" style="font-size:var(--text-sm);word-break:break-all">${topTopic[0]}</div><div class="kpi-sub">${topTopic[1]} tickets</div></div>
-      <div class="kpi-card"><div class="kpi-label">Top Language</div><div class="kpi-value">${topLang[0]}</div><div class="kpi-sub">${topLang[1]} escalations</div></div>
-    </div>
-    <div class="charts-grid" style="margin-bottom:var(--space-6)">
-      <div class="chart-card col-6"><div class="chart-title">Escalated vs Not <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="${pfx}-jira-donut"></canvas></div></div>
-      <div class="chart-card col-6"><div class="chart-title">Top Topics Escalated <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="${pfx}-jira-topic"></canvas></div></div>
-    </div>
-    ${escalated.length===0?`<div class="empty-state"><p>No Jira escalations found for the selected filter.</p></div>`:
-    `<div class="table-card">
-      <div class="table-header">
-        <strong style="font-size:var(--text-sm)">${sheet} Jira Escalations</strong>
-        <span style="font-size:var(--text-xs);color:var(--color-text-muted)">${escalated.length} records (first 200) &mdash; ${wl}</span>
-        <button class="btn btn-ghost" onclick="exportJiraCSV('${sheet}','${pfx}')">&#x2193; Export</button>
-      </div>
-      <div class="table-scroll"><table><thead><tr>${tcols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></div>
-    </div>`}`;
-  // mini charts
-  mkChart(`${pfx}-jira-donut`,{type:'doughnut',data:{labels:['Escalated','Not escalated'],datasets:[{data:[escalated.length,rows.length-escalated.length],backgroundColor:[gc('--color-purple')+'cc',gc('--color-surface-dynamic')],borderWidth:0,hoverOffset:4}]},options:donutOpts('bottom')});
-  const tm=cntBy(escalated,'TOPIC');
-  mkChart(`${pfx}-jira-topic`,{type:'bar',data:{labels:topN(tm,8).map(e=>e[0]),datasets:[{label:'Escalations',data:topN(tm,8).map(e=>e[1]),backgroundColor:gc('--color-purple')+'cc',borderRadius:4}]},options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}},indexAxis:'y'}});
-}
-
-// ── Build all ─────────────────────────────────────────────────────
+// ── BUILD ALL ─────────────────────────────────────────────────────
 function build(){
   killCharts();
-  // reset sub-tab lazy flags
   ['ksl4','km1','ksl5a','km2'].forEach(pfx=>{
-    ['heatmap','jira'].forEach(s=>{
-      const el=document.getElementById(pfx+'-'+s+'-section');if(el)delete el.dataset.built;
-    });
-    // reset sub-tab to charts
-    ['charts','heatmap','jira'].forEach(s=>{const el=document.getElementById(pfx+'-sub-'+s);if(el)el.style.display=s==='charts'?'':'none';});
-    document.querySelectorAll('#tab-'+pfx+' .sub-tab').forEach((t,i)=>{t.classList.toggle('active',i===0);});
+    ['charts','heatmap'].forEach(s=>{const el=document.getElementById(pfx+'-sub-'+s);if(el)el.style.display=s==='charts'?'':'none';});
+    document.querySelectorAll('#tab-'+pfx+' .sub-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+    const hs=document.getElementById(pfx+'-heatmap-section');if(hs)delete hs.dataset.built;
   });
   buildOverview();
   for(const[pfx,sheet]of Object.entries(SHEET_MAP))buildSheet(sheet,pfx);
+  buildJiraTab();
   buildRaw();
 }
 
@@ -543,14 +491,14 @@ function buildOverview(){
     <div class="kpi-card warn"><div class="kpi-label">Excluded</div><div class="kpi-value">${excl.toLocaleString()}</div><div class="kpi-sub">${total>0?(excl/total*100).toFixed(1):0}%</div></div>
     <div class="kpi-card jira"><div class="kpi-label">Jira Escalations</div><div class="kpi-value">${jiraTotal.toLocaleString()}</div><div class="kpi-sub">${total>0?(jiraTotal/total*100).toFixed(1):0}% escalation rate</div></div>`;
   document.getElementById('overview-charts').innerHTML=`
-    <div class="chart-card col-6"><div class="chart-title">Breaches by Sheet <span class="chart-sub">total vs excluded &mdash; ${wl}</span></div><div class="chart-wrap"><canvas id="ov-sheet"></canvas></div></div>
+    <div class="chart-card col-6"><div class="chart-title">Breaches by Sheet <span class="chart-sub">valid vs excluded &mdash; ${wl}</span></div><div class="chart-wrap"><canvas id="ov-sheet"></canvas></div></div>
     <div class="chart-card col-6"><div class="chart-title">Weekly Trend <span class="chart-sub">all sheets</span></div><div class="chart-wrap"><canvas id="ov-week"></canvas></div></div>
-    <div class="chart-card col-4"><div class="chart-title">Exclusion Rate <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="ov-excl"></canvas></div></div>
-    <div class="chart-card col-8"><div class="chart-title">Priority Distribution <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="ov-prio"></canvas></div></div>`;
+    <div class="chart-card col-4"><div class="chart-title">Exclusion Rate</div><div class="chart-wrap"><canvas id="ov-excl"></canvas></div></div>
+    <div class="chart-card col-8"><div class="chart-title">Priority Distribution</div><div class="chart-wrap"><canvas id="ov-prio"></canvas></div></div>`;
   mkChart('ov-sheet',{type:'bar',data:{labels:sb.map(s=>s.name),datasets:[{label:'Valid',data:sb.map(s=>s.cnt-s.excl),backgroundColor:P[0]+'cc',borderRadius:4},{label:'Excluded',data:sb.map(s=>s.excl),backgroundColor:P[2]+'cc',borderRadius:4}]},options:baseOpts()});
   const wks=Object.keys(wm).sort((a,b)=>+a-+b);
-  mkChart('ov-week',{type:'line',data:{labels:wks.map(w=>'Wk '+w),datasets:[{label:'Breaches',data:wks.map(w=>wm[w]),borderColor:P[0],backgroundColor:P[0]+'22',fill:true,tension:.4,pointRadius:wks.map(w=>selWk!=='all'&&String(w)===selWk?7:3),pointBackgroundColor:wks.map(w=>selWk!=='all'&&String(w)===selWk?P[2]:P[0]),borderWidth:2}]},options:baseOpts()});
-  mkChart('ov-excl',{type:'doughnut',data:{labels:['Valid','Excluded'],datasets:[{data:[valid,excl],backgroundColor:[P[0]+'cc',P[2]+'cc'],borderWidth:0,hoverOffset:4}]},options:donutOpts('bottom')});
+  mkChart('ov-week',{type:'line',data:{labels:wks.map(w=>'Wk '+w),datasets:[{label:'Breaches',data:wks.map(w=>wm[w]),borderColor:P[0],backgroundColor:P[0]+'22',fill:true,tension:.4,pointRadius:3,borderWidth:2}]},options:baseOpts()});
+  mkChart('ov-excl',{type:'doughnut',data:{labels:['Valid','Excluded'],datasets:[{data:[valid,excl],backgroundColor:[P[0]+'cc',P[2]+'cc'],borderWidth:0}]},options:donutOpts()});
   const pm={};for(const s of sheets)filterRows(data[s],pfx).forEach(r=>{const p=r['Priority']||'Unknown';pm[p]=(pm[p]||0)+1;});
   const pe=Object.entries(pm).sort((a,b)=>b[1]-a[1]);
   mkChart('ov-prio',{type:'bar',data:{labels:pe.map(e=>e[0]),datasets:[{label:'Count',data:pe.map(e=>e[1]),backgroundColor:P,borderRadius:4}]},options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}}}});
@@ -566,10 +514,9 @@ function buildSheet(sheet,pfx){
   const jiraCount=jc?d.filter(r=>r[jc]!=null&&String(r[jc]).trim()!=='').length:0;
   const wmFull={};raw.forEach(r=>{const w=r['Week'];if(w)wmFull[w]=(wmFull[w]||0)+1;});
   const topWk=Object.entries(wmFull).sort((a,b)=>b[1]-a[1])[0]||['--',0];
-  const deltaHtml=prevWeekDelta(d,raw,pfx);
   const wl=selWk==='all'?'All Weeks':'Week '+selWk;
   document.getElementById(pfx+'-kpis').innerHTML=`
-    <div class="kpi-card accent"><div class="kpi-label">Total</div><div class="kpi-value">${d.length.toLocaleString()}</div><div class="kpi-sub">${wl}</div>${deltaHtml}</div>
+    <div class="kpi-card accent"><div class="kpi-label">Total</div><div class="kpi-value">${d.length.toLocaleString()}</div><div class="kpi-sub">${wl}</div>${prevWeekDelta(d,raw,pfx)}</div>
     <div class="kpi-card ok"><div class="kpi-label">Valid</div><div class="kpi-value">${valid.toLocaleString()}</div></div>
     <div class="kpi-card warn"><div class="kpi-label">Excluded</div><div class="kpi-value">${excl.toLocaleString()}</div><div class="kpi-sub">${d.length>0?(excl/d.length*100).toFixed(1):0}%</div></div>
     <div class="kpi-card jira"><div class="kpi-label">Jira Tickets</div><div class="kpi-value">${jiraCount}</div><div class="kpi-sub">${d.length>0?(jiraCount/d.length*100).toFixed(1):0}% escalation rate</div></div>
@@ -577,22 +524,195 @@ function buildSheet(sheet,pfx){
   const rm=cntBy(d,'Reason'),lm=cntBy(d,'ISO_Language'),tm=cntBy(d,'TOPIC'),pm=cntBy(d,'Priority'),bm=cntBy(d,'Breach_Description');
   let extra='';
   if(sheet==='KM-1')extra+=`<div class="chart-card col-6"><div class="chart-title">Action Distribution <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="${pfx}-action"></canvas></div></div>`;
-  if(sheet==='KSL-5a')extra+=`<div class="chart-card col-12"><div class="chart-title">Breach Description Types <span class="chart-sub">KSL-5a violations &mdash; ${wl}</span></div><div class="chart-wrap tall"><canvas id="${pfx}-btype"></canvas></div></div>`;
+  if(sheet==='KSL-5a')extra+=`<div class="chart-card col-12"><div class="chart-title">Breach Description Types <span class="chart-sub">${wl}</span></div><div class="chart-wrap tall"><canvas id="${pfx}-btype"></canvas></div></div>`;
   document.getElementById(pfx+'-charts').innerHTML=`
     <div class="chart-card col-6"><div class="chart-title">Breach Reason <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="${pfx}-reason"></canvas></div></div>
     <div class="chart-card col-6"><div class="chart-title">Language Distribution <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="${pfx}-lang"></canvas></div></div>
     <div class="chart-card col-8"><div class="chart-title">Top Topics / Systems <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="${pfx}-topic"></canvas></div></div>
     <div class="chart-card col-4"><div class="chart-title">Priority Split <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="${pfx}-prio"></canvas></div></div>
-    <div class="chart-card col-12"><div class="chart-title">Weekly Trend <span class="chart-sub">${sheet} &mdash; full range, selected week highlighted</span></div><div class="chart-wrap"><canvas id="${pfx}-week"></canvas></div></div>
-    ${extra}`;
+    <div class="chart-card col-12"><div class="chart-title">Weekly Trend <span class="chart-sub">${sheet} &mdash; full range</span></div><div class="chart-wrap"><canvas id="${pfx}-week"></canvas></div></div>${extra}`;
   mkChart(`${pfx}-reason`,{type:'bar',data:{labels:topN(rm,8).map(e=>e[0]),datasets:[{label:'Count',data:topN(rm,8).map(e=>e[1]),backgroundColor:P,borderRadius:4}]},options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}},indexAxis:'y'}});
-  mkChart(`${pfx}-lang`,{type:'doughnut',data:{labels:topN(lm,8).map(e=>e[0]),datasets:[{data:topN(lm,8).map(e=>e[1]),backgroundColor:P,borderWidth:0,hoverOffset:4}]},options:donutOpts('right')});
+  mkChart(`${pfx}-lang`,{type:'doughnut',data:{labels:topN(lm,8).map(e=>e[0]),datasets:[{data:topN(lm,8).map(e=>e[1]),backgroundColor:P,borderWidth:0}]},options:donutOpts('right')});
   mkChart(`${pfx}-topic`,{type:'bar',data:{labels:topN(tm,10).map(e=>e[0]),datasets:[{label:'Count',data:topN(tm,10).map(e=>e[1]),backgroundColor:P[0]+'cc',borderRadius:4}]},options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}}}});
-  mkChart(`${pfx}-prio`,{type:'doughnut',data:{labels:topN(pm).map(e=>e[0]),datasets:[{data:topN(pm).map(e=>e[1]),backgroundColor:[P[2]+'cc',P[5]+'cc'],borderWidth:0}]},options:donutOpts('bottom')});
+  mkChart(`${pfx}-prio`,{type:'doughnut',data:{labels:topN(pm).map(e=>e[0]),datasets:[{data:topN(pm).map(e=>e[1]),backgroundColor:[P[2]+'cc',P[5]+'cc'],borderWidth:0}]},options:donutOpts()});
   const wks=Object.keys(wmFull).sort((a,b)=>+a-+b);
   mkChart(`${pfx}-week`,{type:'line',data:{labels:wks.map(w=>'Wk '+w),datasets:[{label:'Breaches',data:wks.map(w=>wmFull[w]),borderColor:P[0],backgroundColor:P[0]+'22',fill:true,tension:.4,pointRadius:wks.map(w=>selWk!=='all'&&String(w)===selWk?7:3),pointBackgroundColor:wks.map(w=>selWk!=='all'&&String(w)===selWk?P[2]:P[0]),borderWidth:2}]},options:baseOpts()});
-  if(sheet==='KM-1'){mkChart(`${pfx}-action`,{type:'bar',data:{labels:topN(cntBy(d,'Action')).map(e=>e[0]),datasets:[{label:'Count',data:topN(cntBy(d,'Action')).map(e=>e[1]),backgroundColor:P,borderRadius:4}]},options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}},indexAxis:'y'}});}
-  if(sheet==='KSL-5a'){mkChart(`${pfx}-btype`,{type:'bar',data:{labels:topN(bm,15).map(e=>e[0]),datasets:[{label:'Count',data:topN(bm,15).map(e=>e[1]),backgroundColor:P,borderRadius:4}]},options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}},indexAxis:'y'}});}
+  if(sheet==='KM-1')mkChart(`${pfx}-action`,{type:'bar',data:{labels:topN(cntBy(d,'Action')).map(e=>e[0]),datasets:[{label:'Count',data:topN(cntBy(d,'Action')).map(e=>e[1]),backgroundColor:P,borderRadius:4}]},options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}},indexAxis:'y'}});
+  if(sheet==='KSL-5a')mkChart(`${pfx}-btype`,{type:'bar',data:{labels:topN(bm,15).map(e=>e[0]),datasets:[{label:'Count',data:topN(bm,15).map(e=>e[1]),backgroundColor:P,borderRadius:4}]},options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}},indexAxis:'y'}});
+}
+
+// ── JIRA TRACKER TAB ──────────────────────────────────────────────
+function getJiraRows(){
+  const selWk=document.getElementById('week-filter-jira').value;
+  const selSheet=document.getElementById('sheet-filter-jira').value;
+  const selLang=document.getElementById('lang-filter-jira').value;
+  const rows=[];
+  for(const[sheet,raw] of Object.entries(data)){
+    if(selSheet!=='all'&&sheet!==selSheet)continue;
+    const jc=findJiraCol(raw[0]||{});
+    if(!jc)continue;
+    raw.forEach(r=>{
+      if(selWk!=='all'&&String(r['Week'])!==selWk)return;
+      if(selLang!=='all'&&r['ISO_Language']!==selLang)return;
+      if(r[jc]==null||String(r[jc]).trim()==='')return;
+      rows.push({...r,_sheet:sheet,_jiraKey:String(r[jc]).trim()});
+    });
+  }
+  return rows;
+}
+
+function buildJiraTab(){
+  if(!data)return;
+  jiraPage=1;
+  jiraSort={col:null,dir:1};
+  // kill only jira charts
+  charts=charts.filter(c=>{const id=c.canvas?.id||'';if(id.startsWith('jt-')){c.destroy();return false;}return true;});
+
+  const rows=getJiraRows();
+  const selWk=document.getElementById('week-filter-jira').value;
+  const selSheet=document.getElementById('sheet-filter-jira').value;
+  const wl=selWk==='all'?'All Weeks':'Week '+selWk;
+
+  // total breaches for escalation rate
+  let totalBreaches=0;
+  for(const[sheet,raw] of Object.entries(data)){
+    if(selSheet!=='all'&&sheet!==selSheet)continue;
+    raw.forEach(r=>{if(selWk!=='all'&&String(r['Week'])!==selWk)return;totalBreaches++;});
+  }
+  const rate=totalBreaches>0?(rows.length/totalBreaches*100).toFixed(1):0;
+
+  // unique tickets
+  const uniqueKeys=new Set(rows.map(r=>r._jiraKey));
+  // top topic
+  const topTopic=topN(cntBy(rows,'TOPIC'),1)[0]||['--',0];
+  // top language
+  const topLang=topN(cntBy(rows,'ISO_Language'),1)[0]||['--',0];
+  // delta vs prev week
+  let jiraDeltaHtml='';
+  if(selWk!=='all'){
+    const allJira=[];
+    for(const[sheet,raw] of Object.entries(data)){
+      if(selSheet!=='all'&&sheet!==selSheet)continue;
+      const jc=findJiraCol(raw[0]||{});if(!jc)continue;
+      raw.forEach(r=>{if(r[jc]!=null&&String(r[jc]).trim()!=='')allJira.push(r);});
+    }
+    const weeks=[...new Set(allJira.map(r=>r['Week']).filter(Boolean))].map(Number).sort((a,b)=>a-b);
+    const idx=weeks.indexOf(+selWk);
+    if(idx>0){const prev=String(weeks[idx-1]);const pc=allJira.filter(r=>String(r['Week'])===prev).length;const{txt,cls}=deltaArrow(rows.length,pc);if(txt)jiraDeltaHtml=`<div class="kpi-delta ${cls}">${txt}</div>`;}
+  }
+
+  // escalation rate per sheet
+  const sheetRates={};
+  for(const[sheet,raw] of Object.entries(data)){
+    const jc=findJiraCol(raw[0]||{});if(!jc){sheetRates[sheet]={e:0,t:raw.length};continue;}
+    const esc=raw.filter(r=>r[jc]!=null&&String(r[jc]).trim()!=='').length;
+    sheetRates[sheet]={e:esc,t:raw.length};
+  }
+
+  // KPIs
+  document.getElementById('jira-kpis').innerHTML=`
+    <div class="kpi-card jira"><div class="kpi-label">Jira Tickets</div><div class="kpi-value">${rows.length.toLocaleString()}</div><div class="kpi-sub">${wl}</div>${jiraDeltaHtml}</div>
+    <div class="kpi-card"><div class="kpi-label">Unique Jira Keys</div><div class="kpi-value">${uniqueKeys.size.toLocaleString()}</div><div class="kpi-sub">Distinct ticket IDs</div></div>
+    <div class="kpi-card ok"><div class="kpi-label">Escalation Rate</div><div class="kpi-value">${rate}%</div><div class="kpi-sub">Of ${totalBreaches.toLocaleString()} total breaches</div></div>
+    <div class="kpi-card"><div class="kpi-label">Top Topic</div><div class="kpi-value" style="font-size:var(--text-sm);word-break:break-all">${topTopic[0]}</div><div class="kpi-sub">${topTopic[1]} tickets</div></div>
+    <div class="kpi-card"><div class="kpi-label">Top Language</div><div class="kpi-value">${topLang[0]}</div><div class="kpi-sub">${topLang[1]} escalations</div></div>`;
+
+  // Charts
+  const weekMap={};
+  for(const[sheet,raw] of Object.entries(data)){
+    if(selSheet!=='all'&&sheet!==selSheet)continue;
+    const jc=findJiraCol(raw[0]||{});if(!jc)continue;
+    raw.filter(r=>r[jc]!=null&&String(r[jc]).trim()!=='').forEach(r=>{const w=r['Week'];if(w)weekMap[w]=(weekMap[w]||0)+1;});
+  }
+  const wks=Object.keys(weekMap).sort((a,b)=>+a-+b);
+  const topicMap=cntBy(rows,'TOPIC');
+  const langMap=cntBy(rows,'ISO_Language');
+  const sheetEscArr=Object.entries(sheetRates);
+
+  document.getElementById('jira-charts').innerHTML=`
+    <div class="chart-card col-8"><div class="chart-title">Jira Escalations Weekly Trend <span class="chart-sub">all-time &mdash; selected week highlighted</span></div><div class="chart-wrap"><canvas id="jt-week"></canvas></div></div>
+    <div class="chart-card col-4"><div class="chart-title">Escalation Rate by Sheet</div><div class="chart-wrap"><canvas id="jt-sheet-rate"></canvas></div></div>
+    <div class="chart-card col-6"><div class="chart-title">Top Escalated Topics <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="jt-topic"></canvas></div></div>
+    <div class="chart-card col-6"><div class="chart-title">Language Breakdown <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="jt-lang"></canvas></div></div>`;
+
+  mkChart('jt-week',{type:'line',data:{labels:wks.map(w=>'Wk '+w),datasets:[{label:'Jira Tickets',data:wks.map(w=>weekMap[w]||0),borderColor:gc('--color-purple'),backgroundColor:gc('--color-purple')+'22',fill:true,tension:.4,pointRadius:wks.map(w=>selWk!=='all'&&String(w)===selWk?7:3),pointBackgroundColor:wks.map(w=>selWk!=='all'&&String(w)===selWk?P[2]:gc('--color-purple')),borderWidth:2}]},options:baseOpts()});
+  mkChart('jt-sheet-rate',{type:'bar',data:{labels:sheetEscArr.map(e=>e[0]),datasets:[{label:'Escalated',data:sheetEscArr.map(e=>e[1].e),backgroundColor:gc('--color-purple')+'cc',borderRadius:4},{label:'Not Escalated',data:sheetEscArr.map(e=>e[1].t-e[1].e),backgroundColor:gc('--color-surface-dynamic'),borderRadius:4}]},options:{...baseOpts(),scales:{...baseOpts().scales,x:{...baseOpts().scales.x,stacked:true},y:{...baseOpts().scales.y,stacked:true}}}});
+  mkChart('jt-topic',{type:'bar',data:{labels:topN(topicMap,8).map(e=>e[0]),datasets:[{label:'Escalations',data:topN(topicMap,8).map(e=>e[1]),backgroundColor:gc('--color-purple')+'cc',borderRadius:4}]},options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}},indexAxis:'y'}});
+  mkChart('jt-lang',{type:'doughnut',data:{labels:topN(langMap,8).map(e=>e[0]),datasets:[{data:topN(langMap,8).map(e=>e[1]),backgroundColor:[gc('--color-purple')+'cc',P[0]+'cc',P[1]+'cc',P[2]+'cc',P[4]+'cc',P[5]+'cc',P[6]+'cc',P[7]+'cc'],borderWidth:0}]},options:donutOpts('right')});
+
+  renderJiraTable(rows);
+}
+
+function renderJiraTable(rows){
+  const PER_PAGE=50;
+  const totalPages=Math.max(1,Math.ceil(rows.length/PER_PAGE));
+  jiraPage=Math.min(jiraPage,totalPages);
+  const start=(jiraPage-1)*PER_PAGE, end=start+PER_PAGE;
+  const paginated=rows.slice(start,end);
+  const tcols=['_jiraKey','_sheet','TOPIC','ISO_Language','Priority','Reason','Week'];
+  const colLabels={'_jiraKey':'Jira Key','_sheet':'Sheet','TOPIC':'Topic','ISO_Language':'Language','Priority':'Priority','Reason':'Reason','Week':'Week'};
+  const thHtml=tcols.map(c=>{
+    const arrow=jiraSort.col===c?(jiraSort.dir===1?' \u25b2':' \u25bc'):'';
+    return`<th onclick="sortJira('${c}')" title="Sort by ${colLabels[c]||c}"><span class="th-sort">${colLabels[c]||c}${arrow}</span></th>`;
+  }).join('');
+  const tbodyHtml=paginated.length===0
+    ?`<tr><td colspan="${tcols.length}" style="text-align:center;padding:var(--space-8);color:var(--color-text-muted)">No Jira escalations match the current filters.</td></tr>`
+    :paginated.map(r=>`<tr>${tcols.map(c=>{
+      const v=r[c]??'--';
+      if(c==='_jiraKey')return`<td><span class="badge badge-jira">${v}</span></td>`;
+      if(c==='_sheet')return`<td><span class="badge badge-sheet ${SHEET_BADGE[v]||'badge-neutral'}">${v}</span></td>`;
+      if(c==='Priority')return`<td><span class="badge ${String(v).includes('3')?'badge-warn':'badge-neutral'}">${v}</span></td>`;
+      return`<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${String(v)}">${String(v).substring(0,60)}</td>`;
+    }).join('')}</tr>`).join('');
+
+  // pagination buttons
+  let pageHtml=`<button class="page-btn" onclick="gotoPage(${jiraPage-1})" ${jiraPage<=1?'disabled':''}>&#x2039; Prev</button>`;
+  const window_start=Math.max(1,jiraPage-2),window_end=Math.min(totalPages,jiraPage+2);
+  for(let p=window_start;p<=window_end;p++)pageHtml+=`<button class="page-btn ${p===jiraPage?'active':''}" onclick="gotoPage(${p})">${p}</button>`;
+  pageHtml+=`<button class="page-btn" onclick="gotoPage(${jiraPage+1})" ${jiraPage>=totalPages?'disabled':''}>Next &#x203a;</button>`;
+
+  document.getElementById('jira-table-section').innerHTML=rows.length===0
+    ?`<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-faint)" stroke-width="1.5" style="margin:0 auto var(--space-3)"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg><p>No Jira escalations found for the selected filters.</p></div>`
+    :`<div class="table-card">
+      <div class="table-header">
+        <strong style="font-size:var(--text-sm);color:var(--color-purple)">&#x1F4CB; Jira Escalation Records</strong>
+        <span style="font-size:var(--text-xs);color:var(--color-text-muted)">${rows.length} records &mdash; page ${jiraPage} of ${totalPages}</span>
+        <button class="btn btn-primary" onclick="exportJiraAll()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export All (${rows.length})
+        </button>
+      </div>
+      <div class="table-scroll"><table><thead><tr>${thHtml}</tr></thead><tbody>${tbodyHtml}</tbody></table></div>
+      <div class="pagination">
+        <span style="margin-right:auto">${start+1}&ndash;${Math.min(end,rows.length)} of ${rows.length}</span>
+        ${pageHtml}
+      </div>
+    </div>`;
+}
+
+function gotoPage(p){
+  const rows=getJiraRows();
+  const totalPages=Math.max(1,Math.ceil(rows.length/50));
+  jiraPage=Math.max(1,Math.min(p,totalPages));
+  if(jiraSort.col){rows.sort((a,b)=>{const av=String(a[jiraSort.col]??''),bv=String(b[jiraSort.col]??'');return av.localeCompare(bv)*jiraSort.dir;});}
+  renderJiraTable(rows);
+}
+
+function sortJira(col){
+  if(jiraSort.col===col)jiraSort.dir*=-1;else{jiraSort.col=col;jiraSort.dir=1;}
+  const rows=getJiraRows();
+  rows.sort((a,b)=>{const av=String(a[col]??''),bv=String(b[col]??'');return av.localeCompare(bv)*jiraSort.dir;});
+  jiraPage=1;
+  renderJiraTable(rows);
+}
+
+function exportJiraAll(){
+  const rows=getJiraRows();if(!rows.length)return;
+  const cols=Object.keys(rows[0]).filter(c=>!c.startsWith('_'))
+  const allCols=['_jiraKey','_sheet',...cols];
+  const csv=[allCols.map(c=>c.replace('_jiraKey','Jira_Key').replace('_sheet','Sheet')).join(','),
+    ...rows.map(r=>allCols.map(c=>`"${String(r[c]??'').replace(/"/g,'""')}"`).join(','))].join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='jira_escalations_export.csv';a.click();
 }
 
 // ── Raw Data ──────────────────────────────────────────────────────
@@ -601,7 +721,7 @@ function buildRaw(){
   for(const[sheet,rows]of Object.entries(data)){
     if(!rows.length)continue;
     const cols=Object.keys(rows[0]).slice(0,12);
-    html+=`<div class="table-card"><div class="table-header"><strong style="font-size:var(--text-sm)">${sheet}</strong><span style="font-size:var(--text-xs);color:var(--color-text-muted)">${rows.length} records &middot; first ${Math.min(100,rows.length)} shown</span></div><div class="table-scroll"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${rows.slice(0,100).map(r=>`<tr>${cols.map(c=>{const v=r[c]??'';
+    html+=`<div class="table-card"><div class="table-header"><strong style="font-size:var(--text-sm)">${sheet}</strong><span style="font-size:var(--text-xs);color:var(--color-text-muted)">${rows.length} records &middot; first 100 shown</span></div><div class="table-scroll"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${rows.slice(0,100).map(r=>`<tr>${cols.map(c=>{const v=r[c]??'';
       if(c==='Excluded')return`<td><span class="badge ${Number(v)===1?'badge-warn':'badge-ok'}">${Number(v)===1?'Yes':'No'}</span></td>`;
       if(c==='Priority')return`<td><span class="badge ${String(v).includes('3')?'badge-warn':'badge-neutral'}">${v||'--'}</span></td>`;
       return`<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${String(v).replace(/"/g,'&quot;')}">${String(v).substring(0,50)||'--'}</td>`;
@@ -613,14 +733,13 @@ function buildRaw(){
 // ── Tab switching ─────────────────────────────────────────────────
 function switchTab(id,btn){
   document.querySelectorAll('#main-tabs .tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
-  const map={overview:'tab-overview',ksl4:'tab-ksl4',km1:'tab-km1',ksl5a:'tab-ksl5a',km2:'tab-km2',raw:'tab-raw'};
+  const map={overview:'tab-overview',ksl4:'tab-ksl4',km1:'tab-km1',ksl5a:'tab-ksl5a',km2:'tab-km2',jira:'tab-jira',raw:'tab-raw'};
   Object.values(map).forEach(v=>{const e=document.getElementById(v);if(e)e.style.display='none';});
   const tab=document.getElementById(map[id]);if(tab)tab.style.display='';
 }
 
 // ── Export ────────────────────────────────────────────────────────
 function exportCSV(){if(!data)return;for(const[sheet,rows]of Object.entries(data)){if(!rows.length)continue;const cols=Object.keys(rows[0]);const csv=[cols.join(','),...rows.map(r=>cols.map(c=>`"${String(r[c]??'').replace(/"/g,'""')}"`).join(','))].join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`${sheet}_export.csv`;a.click();}}
-function exportJiraCSV(sheet,pfx){const raw=data?.[sheet];if(!raw)return;const jc=findJiraCol(raw[0]||{});if(!jc)return;const rows=filterRows(raw,pfx).filter(r=>r[jc]!=null&&String(r[jc]).trim()!=='');if(!rows.length)return;const cols=Object.keys(rows[0]);const csv=[cols.join(','),...rows.map(r=>cols.map(c=>`"${String(r[c]??'').replace(/"/g,'""')}"`).join(','))].join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`${sheet}_jira_escalations.csv`;a.click();}
 </script>
 </body>
 </html>
