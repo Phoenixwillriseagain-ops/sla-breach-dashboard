@@ -92,9 +92,6 @@ a,button,[role="button"]{transition:color var(--transition),background var(--tra
 .filter-select{appearance:none;-webkit-appearance:none;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text);font-family:var(--font-body);font-size:var(--text-sm);padding:var(--space-2) var(--space-8) var(--space-2) var(--space-3);cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23797876' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right var(--space-2) center;transition:border-color var(--transition),box-shadow var(--transition)}
 .filter-select:hover{border-color:var(--color-primary)}
 .filter-select:focus{outline:none;border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-highlight)}
-.search-input{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text);font-family:var(--font-body);font-size:var(--text-sm);padding:var(--space-2) var(--space-4);width:220px;transition:border-color var(--transition),box-shadow var(--transition)}
-.search-input:focus{outline:none;border-color:var(--color-purple);box-shadow:0 0 0 3px rgba(168,111,223,.15)}
-.search-input::placeholder{color:var(--color-text-faint)}
 .week-badge{display:inline-flex;align-items:center;gap:var(--space-1);padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:var(--text-xs);font-weight:600;background:var(--color-primary-highlight);color:var(--color-primary)}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr));gap:var(--space-4);margin-bottom:var(--space-8)}
 .kpi-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-5);box-shadow:var(--shadow-sm);transition:box-shadow var(--transition)}
@@ -426,17 +423,18 @@ function findJiraCol(row){
   return Object.keys(row||{}).find(k=>/^jira$/i.test(k.trim()));
 }
 
-// ── BUG FIX #2: getExcl — handle string '1', number 1, and 'Y'/'N' AOS pattern ──
+// ── getExcl: handles 0.0/1.0 floats, integers 0/1, and Y/N strings ──
+function isExcluded(v){
+  if(v===null||v===undefined||v==='')return false;
+  // numeric: 1 or 1.0
+  if(typeof v==='number')return v===1||v===1.0;
+  const s=String(v).trim();
+  if(s==='1'||s==='1.0')return true;
+  if(s.toUpperCase()==='Y')return true;
+  return false;
+}
 function getExcl(arr){
-  return arr.filter(r=>{
-    const v=r['Excluded'];
-    if(v===null||v===undefined||v==='')return false;
-    // String '1', numeric 1
-    if(parseInt(v,10)===1)return true;
-    // Some sheets use Y/N for AOS rows
-    if(String(v).trim().toUpperCase()==='Y')return true;
-    return false;
-  }).length;
+  return arr.filter(r=>isExcluded(r['Excluded'])).length;
 }
 
 function deltaArrow(c,p){
@@ -462,7 +460,7 @@ function topN(o,n=10){
   return Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,n);
 }
 
-// ── BUG FIX #1: parseBreachDate — handle DD.MM.YYYY HH:mm:ss and ISO ──
+// ── parseBreachDate: handles DD.MM.YYYY HH:mm:ss, ISO, Excel serial, Date ──
 function parseBreachDate(val){
   if(!val)return null;
   if(val instanceof Date)return isNaN(val)?null:val;
@@ -480,7 +478,7 @@ function parseBreachDate(val){
   // DD.MM.YYYY (no time)
   const m2=s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
   if(m2){const d=new Date(+m2[3],+m2[2]-1,+m2[1]);return isNaN(d)?null:d;}
-  // ISO / any other
+  // ISO / any other (YYYY-MM-DD HH:mm:ss)
   const d=new Date(s);
   return isNaN(d)?null:d;
 }
@@ -510,7 +508,6 @@ function donutOpts(pos='bottom'){
   return{responsive:true,maintainAspectRatio:false,cutout:'65%',
     plugins:{legend:{position:pos,labels:{color:muted,font:{size:11},boxWidth:10,padding:8}}}};
 }
-// BUG FIX #6: refreshChartColors includes jt- prefixed jira charts
 function refreshChartColors(){
   charts.forEach(c=>{
     const{muted,grid}=cc();
@@ -530,13 +527,13 @@ function buildHeatmap(sheet,pfx){
   const wl=getWeek(pfx)==='all'?'All Weeks':'Week '+getWeek(pfx);
   const mat=Array.from({length:7},()=>new Array(24).fill(0));
   let parsed=0;
-  // Detect date column: prefer DATE_TIME_Breach
-  const dtField=Object.keys(rows[0]||{}).find(k=>k==='DATE_TIME_Breach')
-    ||Object.keys(rows[0]||{}).find(k=>/breach/i.test(k)&&(/date/i.test(k)||/time/i.test(k)))
-    ||Object.keys(rows[0]||{}).find(k=>/date/i.test(k));
+  const sampleRow=rows[0]||{};
+  const dtField=Object.keys(sampleRow).find(k=>k==='DATE_TIME_Breach')
+    ||Object.keys(sampleRow).find(k=>/breach/i.test(k)&&(/date/i.test(k)||/time/i.test(k)))
+    ||Object.keys(sampleRow).find(k=>/date/i.test(k));
   rows.forEach(r=>{
-    const raw=r[dtField]||r['DATE_TIME_Breach']||r['Breach_Date']||r['Date'];
-    const d=parseBreachDate(raw);
+    const rawVal=r[dtField]||r['DATE_TIME_Breach']||r['Breach_Date']||r['Date'];
+    const d=parseBreachDate(rawVal);
     if(!d)return;
     let dow=d.getDay();
     dow=dow===0?6:dow-1; // Mon=0
@@ -560,7 +557,9 @@ function buildHeatmap(sheet,pfx){
   const legendSwatches=[0,.25,.5,.75,1].map(t=>
     `<div class="hm-legend-swatch" style="background:${hmColor(Math.round(t*maxVal))}" title="${Math.round(t*maxVal)}"></div>`
   ).join('');
-  document.getElementById(pfx+'-heatmap-section').innerHTML=
+  const container=document.getElementById(pfx+'-heatmap-section');
+  if(!container)return;
+  container.innerHTML=
     `<div class="chart-card col-12" style="grid-column:span 12">`+
     `<div class="chart-title">Breach Time Heatmap <span class="chart-sub">Day &times; Hour &mdash; ${wl} &mdash; ${parsed} dated records parsed</span></div>`+
     `<div class="heatmap-wrap"><div class="hm-label-row"><div style="width:28px"></div>${hourLabels}</div>${rowsHtml}</div>`+
@@ -572,7 +571,7 @@ function buildHeatmap(sheet,pfx){
 function switchSub(pfx,sub,btn){
   ['charts','heatmap'].forEach(s=>{
     const el=document.getElementById(pfx+'-sub-'+s);
-    if(el)el.style.display=s===sub?'':' none';
+    if(el)el.style.display=s===sub?'':'none';
   });
   document.querySelectorAll('#tab-'+pfx+' .sub-tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
@@ -586,13 +585,13 @@ function switchSub(pfx,sub,btn){
 function build(){
   killCharts();
   ['ksl4','km1','ksl5a','km2'].forEach(pfx=>{
-    ['charts','heatmap'].forEach(s=>{
-      const el=document.getElementById(pfx+'-sub-'+s);
-      if(el)el.style.display=s==='charts'?'':'none';
-    });
+    const cs=document.getElementById(pfx+'-sub-charts');
+    const hs=document.getElementById(pfx+'-sub-heatmap');
+    if(cs)cs.style.display='';
+    if(hs)hs.style.display='none';
     document.querySelectorAll('#tab-'+pfx+' .sub-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
-    const hs=document.getElementById(pfx+'-heatmap-section');
-    if(hs)delete hs.dataset.built;
+    const hSection=document.getElementById(pfx+'-heatmap-section');
+    if(hSection)delete hSection.dataset.built;
   });
   buildOverview();
   for(const[pfx,sheet]of Object.entries(SHEET_MAP))buildSheet(sheet,pfx);
@@ -600,12 +599,12 @@ function build(){
   buildRaw();
 }
 
-// ── BUG FIX #3: onSheetWeekChange — correct chart ID prefix for overview ──
+// ── Week filter change ────────────────────────────────────────────
 function onSheetWeekChange(pfx){
   const w=getWeek(pfx);
   const badge=document.getElementById('week-badge-'+pfx);
   if(badge){badge.style.display=w==='all'?'none':'inline-flex';if(w!=='all')badge.textContent='Wk '+w;}
-  // For overview, chart IDs start with 'ov-'. For sheets, they start with pfx+'-'
+  // Destroy only charts belonging to this section
   const chartPrefix=pfx==='overview'?'ov-':pfx+'-';
   charts=charts.filter(c=>{
     const id=c.canvas?.id||'';
@@ -725,7 +724,7 @@ function buildSheet(sheet,pfx){
     options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}},indexAxis:'y'}});
 }
 
-// ── BUG FIX #4 & #5: JIRA TRACKER — complete implementation ──────
+// ── JIRA TRACKER ──────────────────────────────────────────────────
 function getJiraRows(){
   const selWk=document.getElementById('week-filter-jira')?.value||'all';
   const selSheet=document.getElementById('sheet-filter-jira')?.value||'all';
@@ -749,7 +748,7 @@ function buildJiraTab(){
   if(!data)return;
   jiraPage=1;
   jiraSort={col:null,dir:1};
-  // Destroy only jira charts
+  // Destroy only jira charts (prefixed jt-)
   charts=charts.filter(c=>{const id=c.canvas?.id||'';if(id.startsWith('jt-')){c.destroy();return false;}return true;});
 
   const rows=getJiraRows();
@@ -757,7 +756,6 @@ function buildJiraTab(){
   const selSheet=document.getElementById('sheet-filter-jira')?.value||'all';
   const wl=selWk==='all'?'All Weeks':'Week '+selWk;
 
-  // Escalation rate denominator
   let totalBreaches=0;
   for(const[sheet,raw] of Object.entries(data)){
     if(selSheet!=='all'&&sheet!==selSheet)continue;
@@ -768,7 +766,6 @@ function buildJiraTab(){
   const topTopic=topN(cntBy(rows,'TOPIC'),1)[0]||['--',0];
   const topLang=topN(cntBy(rows,'ISO_Language'),1)[0]||['--',0];
 
-  // Delta vs previous week
   let jiraDeltaHtml='';
   if(selWk!=='all'){
     const allJira=[];
@@ -787,7 +784,6 @@ function buildJiraTab(){
     }
   }
 
-  // KPIs
   document.getElementById('jira-kpis').innerHTML=
     `<div class="kpi-card jira"><div class="kpi-label">Jira Tickets</div><div class="kpi-value">${rows.length.toLocaleString()}</div><div class="kpi-sub">${wl}</div>${jiraDeltaHtml}</div>`+
     `<div class="kpi-card jira"><div class="kpi-label">Unique Keys</div><div class="kpi-value">${uniqueKeys.size}</div><div class="kpi-sub">Distinct IMQM tickets</div></div>`+
@@ -795,7 +791,6 @@ function buildJiraTab(){
     `<div class="kpi-card"><div class="kpi-label">Top Topic</div><div class="kpi-value" style="font-size:var(--text-sm);word-break:break-all">${topTopic[0]}</div><div class="kpi-sub">${topTopic[1]} tickets</div></div>`+
     `<div class="kpi-card"><div class="kpi-label">Top Language</div><div class="kpi-value">${topLang[0]}</div><div class="kpi-sub">${topLang[1]} tickets</div></div>`;
 
-  // Charts
   if(!rows.length){
     document.getElementById('jira-charts').innerHTML='';
     document.getElementById('jira-table-section').innerHTML=
@@ -814,7 +809,7 @@ function buildJiraTab(){
     `<div class="chart-card col-3"><div class="chart-title">By Sheet</div><div class="chart-wrap"><canvas id="jt-sheet"></canvas></div></div>`+
     `<div class="chart-card col-3"><div class="chart-title">By Language</div><div class="chart-wrap"><canvas id="jt-lang"></canvas></div></div>`+
     `<div class="chart-card col-6"><div class="chart-title">Top Topics</div><div class="chart-wrap"><canvas id="jt-topic"></canvas></div></div>`+
-    `<div class="chart-card col-12"><div class="chart-title">Weekly Escalation Trend <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="jt-week"></canvas></div></div>`;
+    `<div class="chart-card col-12"><div class="chart-title">Weekly Jira Trend <span class="chart-sub">${wl}</span></div><div class="chart-wrap"><canvas id="jt-week"></canvas></div></div>`;
 
   mkChart('jt-sheet',{type:'doughnut',data:{labels:Object.keys(sheetCnt),
     datasets:[{data:Object.values(sheetCnt),backgroundColor:P,borderWidth:0}]},options:donutOpts()});
@@ -824,168 +819,132 @@ function buildJiraTab(){
     datasets:[{label:'Tickets',data:topN(topicCnt,10).map(e=>e[1]),backgroundColor:P[3]+'cc',borderRadius:4}]},
     options:{...baseOpts(),plugins:{...baseOpts().plugins,legend:{display:false}}}});
   mkChart('jt-week',{type:'line',data:{labels:wks.map(w=>'Wk '+w),
-    datasets:[{label:'Jira Tickets',data:wks.map(w=>weekCnt[w]),
-      borderColor:P[3],backgroundColor:P[3]+'22',fill:true,tension:.4,pointRadius:4,borderWidth:2}]},options:baseOpts()});
+    datasets:[{label:'Jira Tickets',data:wks.map(w=>weekCnt[w]),borderColor:P[3],backgroundColor:P[3]+'22',fill:true,tension:.4,pointRadius:4,borderWidth:2}]},options:baseOpts()});
 
-  // Table
   renderJiraTable(rows);
 }
 
-const JIRA_PER_PAGE=25;
-let _jiraRows=[];
-
 function renderJiraTable(rows){
-  _jiraRows=rows;
-  renderJiraPage();
-}
-
-function sortJiraRows(col){
-  if(jiraSort.col===col)jiraSort.dir*=-1;
-  else{jiraSort.col=col;jiraSort.dir=1;}
-  jiraPage=1;
-  renderJiraPage();
-}
-
-function renderJiraPage(){
-  let rows=[..._jiraRows];
-  if(jiraSort.col){
-    rows.sort((a,b)=>{
-      let av=a[jiraSort.col]??'',bv=b[jiraSort.col]??'';
-      if(!isNaN(av)&&!isNaN(bv)){av=+av;bv=+bv;}
-      if(av<bv)return-jiraSort.dir;
-      if(av>bv)return jiraSort.dir;
-      return 0;
-    });
-  }
+  const PAGE=20;
   const total=rows.length;
-  const pages=Math.ceil(total/JIRA_PER_PAGE);
-  const start=(jiraPage-1)*JIRA_PER_PAGE;
-  const slice=rows.slice(start,start+JIRA_PER_PAGE);
+  const totalPages=Math.ceil(total/PAGE);
+  jiraPage=Math.min(jiraPage,totalPages)||1;
+  const slice=rows.slice((jiraPage-1)*PAGE,jiraPage*PAGE);
 
-  const sortIcon=col=>jiraSort.col===col?(jiraSort.dir===1?' &#x25B4;':' &#x25BE;'):'';
+  const cols=['_jiraKey','_sheet','Incident Ticket','ISO_Language','TOPIC','Priority','Week','Excluded'];
+  const headers={'_jiraKey':'Jira Key','_sheet':'Sheet','Incident Ticket':'Incident','ISO_Language':'Lang','TOPIC':'Topic','Priority':'Priority','Week':'Wk','Excluded':'Excl'};
 
-  let html=`<div class="table-card">`+
-    `<div class="table-header">`+
-    `<div style="font-weight:600;font-size:var(--text-sm)">Escalated Breaches <span style="color:var(--color-text-muted);font-weight:400">(${total} total)</span></div>`+
-    `</div>`+
-    `<div class="table-scroll"><table>`+
-    `<thead><tr>`+
-    `<th onclick="sortJiraRows('_sheet')"><span class="th-sort">Sheet${sortIcon('_sheet')}</span></th>`+
-    `<th onclick="sortJiraRows('Incident Ticket')"><span class="th-sort">Incident${sortIcon('Incident Ticket')}</span></th>`+
-    `<th onclick="sortJiraRows('TOPIC')"><span class="th-sort">Topic${sortIcon('TOPIC')}</span></th>`+
-    `<th onclick="sortJiraRows('ISO_Language')"><span class="th-sort">Lang${sortIcon('ISO_Language')}</span></th>`+
-    `<th onclick="sortJiraRows('Priority')"><span class="th-sort">Priority${sortIcon('Priority')}</span></th>`+
-    `<th onclick="sortJiraRows('Week')"><span class="th-sort">Week${sortIcon('Week')}</span></th>`+
-    `<th onclick="sortJiraRows('DATE_TIME_Breach')"><span class="th-sort">Breach Date${sortIcon('DATE_TIME_Breach')}</span></th>`+
-    `<th onclick="sortJiraRows('Reason')"><span class="th-sort">Reason${sortIcon('Reason')}</span></th>`+
-    `<th onclick="sortJiraRows('_jiraKey')"><span class="th-sort">Jira${sortIcon('_jiraKey')}</span></th>`+
-    `</tr></thead><tbody>`;
-
-  slice.forEach(r=>{
-    const jiraKey=r._jiraKey||'';
-    const jiraBadge=jiraKey
-      ?`<span class="badge badge-jira" title="${jiraKey}">${jiraKey}</span>`
-      :'—';
-    const sheetBadge=`<span class="badge badge-sheet ${SHEET_BADGE[r._sheet]||''}">${r._sheet||'—'}</span>`;
-    const prio=String(r['Priority']||'').replace(/^\d+\s*-\s*/,'');
-    const breachDt=String(r['DATE_TIME_Breach']||r['Breach_Date']||'—');
-    html+=`<tr>`+
-      `<td>${sheetBadge}</td>`+
-      `<td style="font-family:var(--font-mono);font-size:var(--text-xs)">${r['Incident Ticket']||'—'}</td>`+
-      `<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r['TOPIC']||''}">${r['TOPIC']||'—'}</td>`+
-      `<td><span class="badge badge-neutral">${r['ISO_Language']||'—'}</span></td>`+
-      `<td>${prio||'—'}</td>`+
-      `<td style="font-family:var(--font-mono)">Wk ${r['Week']||'—'}</td>`+
-      `<td style="font-size:var(--text-xs);white-space:nowrap">${breachDt}</td>`+
-      `<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r['Reason']||''}">${r['Reason']||'—'}</td>`+
-      `<td>${jiraBadge}</td>`+
-      `</tr>`;
-  });
-  html+=`</tbody></table></div>`;
+  const tHead=`<tr>${cols.map(c=>`<th onclick="sortJira('${c}',${JSON.stringify(rows)})" class="th-sort">${headers[c]||c}</th>`).join('')}</tr>`;
+  const tBody=slice.map(r=>{
+    const excBadge=isExcluded(r['Excluded'])?'<span class="badge badge-warn">Yes</span>':'<span class="badge badge-ok">No</span>';
+    const jiraKey=r._jiraKey?`<span class="badge badge-jira">${r._jiraKey}</span>`:'';
+    const sheetBadge=`<span class="badge badge-sheet ${SHEET_BADGE[r._sheet]||''}">${r._sheet}</span>`;
+    return`<tr>
+      <td>${jiraKey}</td>
+      <td>${sheetBadge}</td>
+      <td style="font-family:var(--font-mono);font-size:var(--text-xs)">${r['Incident Ticket']||''}</td>
+      <td><span class="badge badge-neutral">${r['ISO_Language']||''}</span></td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r['TOPIC']||''}">${r['TOPIC']||''}</td>
+      <td>${r['Priority']||''}</td>
+      <td style="font-family:var(--font-mono)">${r['Week']||''}</td>
+      <td>${excBadge}</td>
+    </tr>`;
+  }).join('');
 
   // Pagination
-  if(pages>1){
-    html+=`<div class="pagination">`+
-      `<span>${start+1}–${Math.min(start+JIRA_PER_PAGE,total)} of ${total}</span>`+
-      `<button class="page-btn" onclick="jiraPage=Math.max(1,jiraPage-1);renderJiraPage()" ${jiraPage===1?'disabled':''}>&#x2039; Prev</button>`;
-    const range=[];
-    for(let i=1;i<=pages;i++){
-      if(i===1||i===pages||Math.abs(i-jiraPage)<=2)range.push(i);
-      else if(range[range.length-1]!=='…')range.push('…');
-    }
-    range.forEach(p=>{
-      if(p==='…')html+=`<span style="color:var(--color-text-faint);padding:0 var(--space-1)">…</span>`;
-      else html+=`<button class="page-btn ${p===jiraPage?'active':''}" onclick="jiraPage=${p};renderJiraPage()">${p}</button>`;
-    });
-    html+=`<button class="page-btn" onclick="jiraPage=Math.min(${pages},jiraPage+1);renderJiraPage()" ${jiraPage===pages?'disabled':''}>Next &#x203A;</button>`+
-      `</div>`;
+  const pages=[];
+  if(totalPages<=7){for(let i=1;i<=totalPages;i++)pages.push(i);}
+  else{
+    pages.push(1);
+    if(jiraPage>3)pages.push('...');
+    for(let i=Math.max(2,jiraPage-1);i<=Math.min(totalPages-1,jiraPage+1);i++)pages.push(i);
+    if(jiraPage<totalPages-2)pages.push('...');
+    pages.push(totalPages);
   }
-  html+=`</div>`;
-  document.getElementById('jira-table-section').innerHTML=html;
+  const pagBtns=pages.map(p=>p==='...'?`<span style="padding:0 4px;color:var(--color-text-faint)">…</span>`
+    :`<button class="page-btn${p===jiraPage?' active':''}" onclick="jiraPage=${p};renderJiraTable(window._jiraRows||[])">${p}</button>`).join('');
+
+  document.getElementById('jira-table-section').innerHTML=
+    `<div class="table-card">
+      <div class="table-header">
+        <div style="font-weight:600;font-size:var(--text-sm)">Jira-Escalated Breaches <span style="color:var(--color-text-muted);font-weight:400">(${total.toLocaleString()} records)</span></div>
+      </div>
+      <div class="table-scroll"><table><thead>${tHead}</thead><tbody>${tBody}</tbody></table></div>
+      <div class="pagination">
+        <button class="page-btn" onclick="jiraPage=Math.max(1,jiraPage-1);renderJiraTable(window._jiraRows||[])" ${jiraPage===1?'disabled':''}>&#8592; Prev</button>
+        ${pagBtns}
+        <button class="page-btn" onclick="jiraPage=Math.min(${totalPages},jiraPage+1);renderJiraTable(window._jiraRows||[])" ${jiraPage===totalPages?'disabled':''}>Next &#8594;</button>
+        <span style="margin-left:auto">Page ${jiraPage} of ${totalPages} &mdash; ${total.toLocaleString()} records</span>
+      </div>
+    </div>`;
+  window._jiraRows=rows;
 }
 
-// ── Export CSV ────────────────────────────────────────────────────
-function exportCSV(){
-  if(activeTab==='jira'){exportJiraCSV();return;}
-  const pfx=activeTab;
-  const sheet=SHEET_MAP[pfx];
-  if(!sheet||!data[sheet])return;
-  const rows=filterRows(data[sheet],pfx);
-  if(!rows.length)return;
-  const keys=Object.keys(rows[0]).filter(k=>!k.startsWith('_'));
-  const csv=[keys.join(','),...rows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))].join('\n');
-  dlCSV(csv,(sheet||'export')+'_breaches.csv');
-}
-function exportJiraCSV(){
-  const rows=getJiraRows();
-  if(!rows.length){alert('No Jira rows to export with current filters.');return;}
-  const keys=['_sheet','Incident Ticket','TOPIC','ISO_Language','Priority','Week','DATE_TIME_Breach','Reason','_jiraKey'];
-  const headers=['Sheet','Incident Ticket','Topic','Language','Priority','Week','Breach Date','Reason','Jira Key'];
-  const csv=[headers.join(','),...rows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))].join('\n');
-  dlCSV(csv,'jira_escalations.csv');
-}
-function dlCSV(csv,filename){
-  const blob=new Blob([csv],{type:'text/csv'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=filename;
-  a.click();
-  URL.revokeObjectURL(a.href);
+function sortJira(col,rows){
+  if(jiraSort.col===col)jiraSort.dir*=-1;
+  else{jiraSort.col=col;jiraSort.dir=1;}
+  rows.sort((a,b)=>{
+    const va=String(a[col]||''),vb=String(b[col]||'');
+    return va.localeCompare(vb)*jiraSort.dir;
+  });
+  jiraPage=1;
+  renderJiraTable(rows);
 }
 
-// ── Raw Data tables ───────────────────────────────────────────────
+// ── Raw data ──────────────────────────────────────────────────────
 function buildRaw(){
-  const container=document.getElementById('raw-tables');
-  container.innerHTML='';
+  let html='';
   for(const[sheet,rows] of Object.entries(data)){
     if(!rows||!rows.length)continue;
-    const keys=Object.keys(rows[0]).filter(k=>!k.startsWith('_'));
-    const jc=findJiraCol(rows[0]);
-    let html=`<div class="table-card" style="margin-bottom:var(--space-8)">`+
-      `<div class="table-header">`+
-      `<div style="font-weight:700;font-size:var(--text-sm)">${sheet} <span class="badge badge-sheet ${SHEET_BADGE[sheet]||''}">${rows.length} rows</span></div>`+
-      `</div><div class="table-scroll"><table><thead><tr>`+
-      keys.map(k=>`<th>${k}</th>`).join('')+
-      `</tr></thead><tbody>`;
-    rows.slice(0,200).forEach(r=>{
-      html+=`<tr>`;
-      keys.forEach(k=>{
-        let v=r[k]??'';
-        let cell=String(v);
-        if(k==='Excluded'){
-          const ex=parseInt(v,10)===1||String(v).trim().toUpperCase()==='Y';
-          cell=ex?'<span class="badge badge-warn">Excl</span>':'<span class="badge badge-ok">OK</span>';
-        } else if(k===jc&&v&&String(v).trim()){
-          cell=`<span class="badge badge-jira">${String(v).trim()}</span>`;
-        }
-        html+=`<td>${cell}</td>`;
-      });
-      html+=`</tr>`;
-    });
-    if(rows.length>200)html+=`<tr><td colspan="${keys.length}" style="text-align:center;color:var(--color-text-muted);padding:var(--space-4)">… and ${rows.length-200} more rows — use Export CSV for full data</td></tr>`;
-    html+=`</tbody></table></div></div>`;
-    container.innerHTML+=html;
+    const cols=Object.keys(rows[0]).filter(k=>!k.startsWith('__'));
+    const sample=rows.slice(0,50);
+    html+=`<div class="table-card" style="margin-bottom:var(--space-6)">
+      <div class="table-header">
+        <div style="font-weight:700">${sheet}</div>
+        <span style="font-size:var(--text-xs);color:var(--color-text-muted)">${rows.length.toLocaleString()} rows &mdash; showing first 50</span>
+      </div>
+      <div class="table-scroll"><table>
+        <thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+        <tbody>${sample.map(r=>`<tr>${cols.map(c=>{
+          const v=r[c];
+          if(c==='Excluded'){const ex=isExcluded(v);return`<td><span class="badge ${ex?'badge-warn':'badge-ok'}">${ex?'Yes':'No'}</span></td>`;}
+          if(c==='Jira'&&v!=null&&String(v).trim()){return`<td><span class="badge badge-jira">${v}</span></td>`;}
+          return`<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${String(v??'')}">${v??''}</td>`;
+        }).join('')}</tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
   }
+  document.getElementById('raw-tables').innerHTML=html||'<p style="color:var(--color-text-muted)">No data loaded.</p>';
+}
+
+// ── Export ────────────────────────────────────────────────────────
+function exportCSV(){
+  if(!data)return;
+  const sheets=Object.keys(data);
+  const tab=activeTab;
+  let rows,name;
+  if(tab==='overview'||tab==='raw'||tab==='jira'){rows=Object.values(data).flat();name='all-sheets';}
+  else{const s=SHEET_MAP[tab];rows=data[s]||[];name=s;}
+  rows=filterRows(rows,tab==='overview'||tab==='raw'||tab==='jira'?'overview':tab);
+  if(!rows.length)return;
+  const cols=Object.keys(rows[0]).filter(k=>!k.startsWith('__'));
+  const csv=[cols.join(','),...rows.map(r=>cols.map(c=>{const v=String(r[c]??'').replace(/"/g,'""');return v.includes(',')||v.includes('\n')||v.includes('"')?`"${v}"`:v;}).join(','))].join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`sla-breaches-${name}.csv`;
+  a.click();
+}
+
+function exportJiraCSV(){
+  const rows=getJiraRows();
+  if(!rows.length)return;
+  const cols=Object.keys(rows[0]).filter(k=>!k.startsWith('_'));
+  cols.unshift('_jiraKey','_sheet');
+  const csv=[cols.join(','),...rows.map(r=>cols.map(c=>{const v=String(r[c]??'').replace(/"/g,'""');return v.includes(',')||v.includes('\n')||v.includes('"')?`"${v}"`:v;}).join(','))].join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='jira-escalations.csv';
+  a.click();
 }
 </script>
 </body>
